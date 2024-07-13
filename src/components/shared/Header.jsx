@@ -2,6 +2,7 @@
 
 import { Button, Navbar } from "flowbite-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Link as ScrollLink } from "react-scroll";
 
 export function HeaderComponent() {
@@ -28,7 +29,9 @@ export function HeaderComponent() {
         </span>
       </Navbar.Brand>
       <div className="flex md:order-2">
-        <Button color="blue">Login</Button>
+        <Button color="blue">
+          <Link href={"/login"}>Login</Link>
+        </Button>
         <Navbar.Toggle />
       </div>
       <Navbar.Collapse>
