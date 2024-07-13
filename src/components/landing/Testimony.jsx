@@ -1,5 +1,6 @@
 import { testimonials } from "@/_constants/landing/testimonials";
 import { Carousel } from "flowbite-react";
+import Image from "next/image";
 
 export function Testimony() {
   return (
@@ -28,10 +29,12 @@ export function Testimony() {
               </p>
             </blockquote>
             <figcaption className="flex items-center justify-center mt-6 space-x-3 rtl:space-x-reverse">
-              <img
+              <Image
                 className="w-6 h-6 rounded-full"
-                src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/michael-gouch.png"
+                src={testimonial?.img}
                 alt="profile picture"
+                height={24}
+                width={24}
               />
               <div className="flex items-center divide-x-2 divide-gray-500 rtl:divide-x-reverse dark:divide-gray-700">
                 <cite className="font-medium text-gray-900 pe-3 dark:text-white">

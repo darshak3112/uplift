@@ -14,16 +14,16 @@ export function HeaderComponent() {
   ];
 
   return (
-    <Navbar fluid rounded className="mt-2">
+    <Navbar fluid rounded>
       <Navbar.Brand href="/">
         <Image
           src="/images/Logo.png"
-          width={80}
-          height={250}
-          className="h-6 sm:h-9"
+          width={70}
+          height={350}
+          className="h-6 sm:h-16"
           alt="App Name"
         />
-        <span className="self-center text-3xl font-semibold whitespace-nowrap dark:text-white">
+        <span className="self-center text-3xl font-semibold whitespace-nowrap">
           Uplift
         </span>
       </Navbar.Brand>
@@ -41,7 +41,6 @@ export function HeaderComponent() {
             spy={true}
             smooth={true}
             offset={-50}
-            
           >
             {item?.text}
           </ScrollLink>

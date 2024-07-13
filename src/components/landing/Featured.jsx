@@ -3,12 +3,9 @@ import TestimonyCard from "./FeatureCard";
 
 export function Featured() {
   return (
-    <section
-      id="landingFeatured"
-      className="mx-8 mt-5 bg-white dark:bg-gray-900"
-    >
+    <section id="landingFeatured" className="mx-8 mt-5 bg-white">
       <div className="mx-auto mb-1 max-w-screen lg:mb-8">
-        <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-center text-gray-900 lg:mb-12 dark:text-white md:text-4xl">
+        <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-center text-gray-900 lg:mb-12 md:text-4xl">
           Testimony Designed for business teams like yours
         </h2>
       </div>
