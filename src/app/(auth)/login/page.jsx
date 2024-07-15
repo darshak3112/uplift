@@ -1,11 +1,22 @@
 "use client";
 
-import { Button, Card, Checkbox, Label, TextInput, HR } from "flowbite-react";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Label,
+  TextInput,
+  HR,
+  Radio,
+} from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 
 export default function Login() {
+  const [user, setUser] = useState(null);
+
   return (
     <section className="flex justify-center gap-24 px-5 py-8 md:px-14">
       <Card className="max-w-lg">
@@ -35,6 +46,31 @@ export default function Login() {
             </Link>
           </p>
         </div>
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2">
+            <div className="mr-5">
+              <Label htmlFor="lableUser" className="text-lg">
+                Signup as:
+              </Label>
+            </div>
+            <Radio
+              id="creatorRadio"
+              onClick={() => setUser("Creator")}
+              name="user"
+              value="creator"
+            />
+            <Label htmlFor="creator">Creator</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Radio
+              id="testerRadio"
+              onClick={() => setUser("Tester")}
+              name="user"
+              value="tester"
+            />
+            <Label htmlFor="tester">Tester</Label>
+          </div>
+        </div>
         <form className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 md:flex-row">
             <div>
@@ -63,9 +99,11 @@ export default function Login() {
 
           <HR />
 
-          <Button color={"light"}>
+          <Button disabled={user === null} color={"light"}>
             <FcGoogle className="w-5 h-5 mr-2" />
-            Sign in with Google
+            {user === null
+              ? "To sign up with google please select role"
+              : "Sign up with google"}
           </Button>
 
           <div className="flex items-center justify-between gap-2 my-2">

@@ -1,7 +1,7 @@
 export function Stats() {
   return (
     <section id="landingStats" className="bg-white mt-36 ">
-      <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-center text-gray-900 lg:mb-16 md:text-4xl">
+      <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-center text-gray-900 lg:mb-8 md:text-4xl">
         Stats that matters
       </h2>
       <div className="max-w-screen-xl px-4 py-8 mx-auto text-center lg:py-8 lg:px-6">

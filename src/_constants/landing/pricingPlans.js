@@ -15,7 +15,7 @@ export const pricingPlans = [
     name: "Ascend",
     bedge: "Social Media Pack",
 
-    price: 8,
+    price: 4.99,
     description: "Perfect for optimizing your YouTube content.",
     includes: [
       "Thumbnail testing",
@@ -27,7 +27,7 @@ export const pricingPlans = [
   {
     name: "Propel ",
     bedge: "Developer Pack",
-    price: 12,
+    price: 6.99,
     description: "Designed to streamline your app development process.",
     includes: [
       "Test up to 4 applications per month",
@@ -40,7 +40,7 @@ export const pricingPlans = [
   {
     name: "Amplify ",
     bedge: "Marketing Pack",
-    price: 14,
+    price: 9.99,
     description: "Boost your products with targeted marketing insights.",
     includes: [
       "Target audience identification",

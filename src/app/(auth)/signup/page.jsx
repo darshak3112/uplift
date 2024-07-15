@@ -9,12 +9,19 @@ import {
   TextInput,
   HR,
   Select,
+  Radio,
+  Datepicker,
 } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 
 export default function SignUp() {
+  const [user, setUser] = useState(null);
+
+  const gender = ["Male", "Female", "Prefer not to say"];
+
   return (
     <section className="flex justify-center gap-24 px-5 py-8 md:px-14">
       <Card className="max-w-lg">
@@ -44,6 +51,31 @@ export default function SignUp() {
             </Link>
           </p>
         </div>
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2">
+            <div className="mr-5">
+              <Label htmlFor="lableUser" className="text-lg">
+                Signup as:
+              </Label>
+            </div>
+            <Radio
+              id="creatorRadio"
+              onClick={() => setUser("Creator")}
+              name="user"
+              value="creator"
+            />
+            <Label htmlFor="creator">Creator</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Radio
+              id="testerRadio"
+              onClick={() => setUser("Tester")}
+              name="user"
+              value="tester"
+            />
+            <Label htmlFor="tester">Tester</Label>
+          </div>
+        </div>
         <form className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 md:flex-row">
             <div>
@@ -72,10 +104,10 @@ export default function SignUp() {
           <div className="flex flex-col gap-4 md:flex-row">
             <div>
               <div className="block mb-2">
-                <Label htmlFor="email1" value="Email" />
+                <Label htmlFor="email" value="Email" />
               </div>
               <TextInput
-                id="email1"
+                id="email"
                 type="email"
                 placeholder="name@company.com"
                 required
@@ -83,17 +115,64 @@ export default function SignUp() {
             </div>
             <div>
               <div className="block mb-2">
-                <Label htmlFor="countries" value="Select your country" />
+                <Label htmlFor="mobile" value="mobile" />
               </div>
-              <Select id="countries" required>
-                {countries.map((country) => (
-                  <option key={country}>{country}</option>
-                ))}
-                {/* <option>Canada</option>
-                <option>France</option>
-                <option>Germany</option> */}
-              </Select>
+              <TextInput
+                id="mobile"
+                type="text"
+                placeholder="+911234567890"
+                required
+              />
             </div>
+          </div>
+          <div className="flex flex-col gap-4 md:flex-row">
+            <div>
+              <div>
+                <div className="block mb-2">
+                  <Label htmlFor="gender" value="Gender" />
+                </div>
+                <Select id="gender" required>
+                  {gender.map((test) => (
+                    <option key={test}>{test}</option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+
+            <div className="md:ml-11">
+              <div className="block mb-2">
+                <Label htmlFor="DOB" value="Date of birth" />
+              </div>
+              <Datepicker />
+            </div>
+          </div>
+          <div className="flex flex-col gap-4 md:flex-row">
+            <div>
+              <div>
+                <div className="block mb-2">
+                  <Label htmlFor="countries" value="Select your country" />
+                </div>
+                <Select id="countries" required>
+                  {countries.map((country) => (
+                    <option key={country}>{country}</option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            {user === "Tester" && (
+              <div className="md:ml-16">
+                <div className="block mb-2">
+                  <Label htmlFor="pincode" value="Pincode" />
+                </div>
+                <TextInput
+                  id="pincode"
+                  type="number"
+                  placeholder="xxxxxx"
+                  max={999999}
+                  required
+                />
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-4 md:flex-row">
             <div>
@@ -122,9 +201,11 @@ export default function SignUp() {
 
           <HR />
 
-          <Button color={"light"}>
+          <Button disabled={user === null} color={"light"}>
             <FcGoogle className="w-5 h-5 mr-2" />
-            Sign in with Google
+            {user === null
+              ? "To sign up with google please select role"
+              : "Sign up with google"}
           </Button>
 
           <div className="flex flex-col gap-3 my-2">
