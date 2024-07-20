@@ -2,12 +2,12 @@ export function ContactUs() {
   return (
     <section
       id="landingContactUs"
-      className="relative mx-5 text-gray-600 body-font"
+      className="relative mx-12 text-gray-600 body-font"
     >
-      <h2 className="mb-8 text-3xl font-extrabold leading-tight tracking-tight text-center text-gray-900 md:text-4xl">
+      <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-center text-gray-900 md:text-4xl">
         Contact Us
       </h2>
-      <div className="container flex flex-wrap px-5 py-24 mx-auto sm:flex-nowrap">
+      <div className="flex flex-wrap px-5 py-16 mx-auto md:mx-10 sm:flex-nowrap">
         <div className="relative flex items-end justify-start p-10 overflow-hidden bg-gray-300 rounded-lg lg:w-2/3 md:w-1/2 sm:mr-10">
           <iframe
             width="100%"
@@ -35,7 +35,9 @@ export function ContactUs() {
               <h2 className="text-xs font-semibold tracking-widest text-gray-900 title-font">
                 EMAIL
               </h2>
-              <a className="leading-relaxed text-blue-500">support@uplift.com</a>
+              <a className="leading-relaxed text-blue-500">
+                support@uplift.com
+              </a>
               <h2 className="mt-4 text-xs font-semibold tracking-widest text-gray-900 title-font">
                 PHONE
               </h2>
@@ -75,7 +77,10 @@ export function ContactUs() {
             />
           </div>
           <div className="relative mb-4">
-            <label htmlFor="message" className="text-sm leading-7 text-gray-600">
+            <label
+              htmlFor="message"
+              className="text-sm leading-7 text-gray-600"
+            >
               Message
             </label>
             <textarea

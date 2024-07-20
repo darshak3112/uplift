@@ -13,7 +13,7 @@ const JWT_SECRET = process.env.TOKEN_SECRET; // Replace this with your actual se
 
 const loginSchema = z.object({
     email: z.string().email(),
-    password: z.string().min(6), // Adjust min length as needed
+    password: z.string().min(8), // Adjust min length as needed
     role: z.enum(['tester', 'creator']),
 });
 
@@ -29,7 +29,7 @@ export async function POST(req) {
         let existingUser;
 
         if (role === "tester") {
-            existingUser = await Tester.findOne({ email });
+            existingUser = await Tester.findOne({ email  });
             if (!existingUser) {
                 return NextResponse.json({ message: "Tester not found" }, { status: 404 });
             }

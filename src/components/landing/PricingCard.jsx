@@ -10,10 +10,13 @@ export default function PricingCard({
       <span className="bg-blue-200 -mt-4 w-fit text-blue-600 text-xs font-medium  px-2.5 py-0.5 rounded-full ">
         {bedge}
       </span>
-      <h3 className="mb-4 text-2xl font-semibold">{name}</h3>
+      <h3 className="my-4 text-4xl font-bold">{name}</h3>
       <p className="font-light text-gray-500 sm:text-lg ">{description}</p>
+
       <div className="flex items-baseline justify-center my-8">
-        <span className="mr-2 text-5xl font-extrabold">${price}</span>
+        <span className="mx-2 font-light text-gray-500 sm:text-lg">Starts</span>
+
+        <span className="mr-2 text-3xl font-bold">${price}</span>
         <span className="text-gray-500 ">/month</span>
       </div>
 

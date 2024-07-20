@@ -8,11 +8,11 @@ import { z } from 'zod';
 dbConnect();
 
 const userSchema = z.object({
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
+    firstName: z.string().min(2),
+    lastName: z.string().min(2),
     email: z.string().email(),
     mobileNo: z.string().min(10), // Adjust minimum length as needed
-    gender: z.enum(['male', 'female', 'other']),
+    gender: z.enum(['Male', 'Female', 'Others']),
     password: z.string().min(6), // Adjust minimum length as needed
     dob: z.string().date(), // Ensures valid ISO 8601 date format
     country: z.string().min(2), // Adjust minimum length as needed

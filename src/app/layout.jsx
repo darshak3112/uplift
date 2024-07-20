@@ -7,7 +7,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Uplift",
-  description: "Uplift bridges the gap between businesses and passionate testers. Get valuable feedback on products, content, and marketing to ensure success. Businesses gain actionable insights, testers earn rewards. Launch with confidence!",
+  description:
+    "Uplift bridges the gap between businesses and passionate testers. Get valuable feedback on products, content, and marketing to ensure success. Businesses gain actionable insights, testers earn rewards. Launch with confidence!",
 };
 
 export default function RootLayout({ children }) {

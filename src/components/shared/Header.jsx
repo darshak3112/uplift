@@ -1,18 +1,19 @@
 "use client";
 
-import { Button, Navbar } from "flowbite-react";
+import { Navbar } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Link as ScrollLink } from "react-scroll";
+import { usePathname } from "next/navigation";
 
 export function HeaderComponent() {
   const navigationItems = [
-    { text: "Home", href: "/", id: "landingHeroBanner" },
     { text: "Services", href: "#landingFeatured", id: "landingFeatured" },
     { text: "Pricing", href: "#landingPricing", id: "landingPricing" },
     { text: "Blog", href: "#landingBlogs", id: "landingBlogs" },
     { text: "Contact", href: "#landingContactUs", id: "landingContactUs" },
   ];
+  const pathname = usePathname();
 
   return (
     <Navbar fluid rounded>
@@ -29,25 +30,37 @@ export function HeaderComponent() {
         </span>
       </Navbar.Brand>
       <div className="flex md:order-2">
-        <Button color="blue">
-          <Link href={"/login"}>Login</Link>
-        </Button>
+        <Link
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2focus:outline-none "
+          href={pathname === "/login" ? "/signup" : "/login"}
+        >
+          {pathname === "/login" ? "SignUp" : "Login"}
+        </Link>
+
         <Navbar.Toggle />
       </div>
       <Navbar.Collapse>
-        {navigationItems.map((item) => (
-          <ScrollLink
-            className="text-xl cursor-pointer"
-            key={item?.text}
-            activeClass="active"
-            to={item?.id}
-            spy={true}
-            smooth={true}
-            offset={-50}
-          >
-            {item?.text}
-          </ScrollLink>
-        ))}
+        <Link
+          color={"black"}
+          className="text-xl cursor-pointer hover:text-blue-600"
+          href="/"
+        >
+          Home
+        </Link>
+        {pathname === "/" &&
+          navigationItems.map((item) => (
+            <ScrollLink
+              className="text-xl cursor-pointer hover:text-blue-600"
+              key={item?.text}
+              activeClass="active"
+              to={item?.id}
+              spy={true}
+              smooth={true}
+              offset={-50}
+            >
+              {item?.text}
+            </ScrollLink>
+          ))}
       </Navbar.Collapse>
     </Navbar>
   );

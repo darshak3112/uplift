@@ -1,11 +1,64 @@
 "use client";
 
-import { Button, Card, Checkbox, Label, TextInput, HR } from "flowbite-react";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Label,
+  TextInput,
+  HR,
+  Radio,
+} from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Login() {
+  const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+      role: null,
+    },
+  });
+
+  const isRoleSelected = watch("role");
+
+  const onSubmit = async (data, event) => {
+    event.preventDefault();
+    setErrorMessage(null);
+    try {
+      const response = await axios.post("/api/auth/login", data);
+      console.log("this is : ", response.data.message);
+      router.push("/dashboard");
+    } catch (error) {
+      ({
+        response: { data },
+      } = error);
+
+      if (data?.message) {
+        setTimeout(() => {
+          setErrorMessage(() => data?.message);
+        }, 1500);
+
+        setTimeout(() => {
+          setErrorMessage(() => null);
+        }, 4800);
+      }
+    }
+  };
+
   return (
     <section className="flex justify-center gap-24 px-5 py-8 md:px-14">
       <Card className="max-w-lg">
@@ -26,7 +79,7 @@ export default function Login() {
             Welcome Back
           </h5>
           <p className="text-sm font-normal text-gray-700">
-            Start your website in seconds. Don’t have an account?{" "}
+            Start your earning in seconds. Don’t have an account?{" "}
             <Link
               href={"/signup"}
               className="font-semibold text-blue-700 hover:underline"
@@ -35,42 +88,105 @@ export default function Login() {
             </Link>
           </p>
         </div>
-        <form className="flex flex-col gap-4">
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2 ">
+            <div className="mr-5">
+              <Label htmlFor="lableUser" className="text-lg">
+                Signup as:
+              </Label>
+            </div>
+            <Radio
+              id="creatorRadio"
+              name="role"
+              value="creator"
+              className="cursor-pointer"
+              {...register("role", { required: true })}
+            />
+            <Label htmlFor="creator" className="cursor-pointer">
+              Creator
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Radio
+              id="testerRadio"
+              name="role"
+              value="tester"
+              className="cursor-pointer"
+              {...register("role", { required: true })}
+            />
+            <Label htmlFor="tester" className="cursor-pointer">
+              Tester
+            </Label>
+          </div>
+        </div>
+        <form method="POST" className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-4 md:flex-row">
             <div>
               <div className="block mb-2">
-                <Label htmlFor="email1" value="Email" />
+                <Label htmlFor="email" value="Email" />
               </div>
               <TextInput
-                id="email1"
+                id="email"
                 type="email"
+                name="email"
                 placeholder="name@company.com"
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^\S+@\S+\.\S+$/,
+                    message: "Invalid email format",
+                  },
+                })}
                 required
               />
+              {errors?.email && setErrorMessage(null) && (
+                <p className="mt-2 text-sm text-red-500">
+                  {errors?.email?.message}
+                </p>
+              )}
             </div>
             <div>
               <div className="block mb-2">
-                <Label htmlFor="password1" value="Password" />
+                <Label htmlFor="password" value="Password" />
               </div>
               <TextInput
-                id="password1"
+                id="password"
                 type="password"
                 placeholder="••••••••"
+                name="password"
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters",
+                  },
+                })}
                 required
               />
+              {errors?.password && (
+                <p className="md:max-w-[10rem] mt-2 text-sm text-red-500">
+                  {errors?.password?.message}
+                </p>
+              )}
             </div>
           </div>
-
+          {errorMessage && (
+            <p className="flex justify-center -mb-8 text-base font-normal text-red-500">
+              {errorMessage}
+            </p>
+          )}
           <HR />
 
-          <Button color={"light"}>
+          <Button disabled={!isRoleSelected} color={"light"}>
             <FcGoogle className="w-5 h-5 mr-2" />
-            Sign in with Google
+            {!isRoleSelected
+              ? "To sign up with google please select role"
+              : "Sign up with google"}
           </Button>
 
           <div className="flex items-center justify-between gap-2 my-2">
             <div className="flex gap-1">
-              <Checkbox id="remember" />
+              <Checkbox checked disabled color={"blue"} id="remember" />
               <Label htmlFor="remember">Remember me</Label>
             </div>
             <Link
@@ -80,7 +196,7 @@ export default function Login() {
               Forgot Password?
             </Link>
           </div>
-          <Button type="submit" color={"blue"}>
+          <Button disabled={!isRoleSelected} type="submit" color={"blue"}>
             Sign in to your account
           </Button>
         </form>
