@@ -13,6 +13,7 @@ import { GoToTopButton } from "@/components/shared/GoToTop";
 export default function Home() {
   return (
     <>
+    //test
       <HeroBanner />
       <Featured />
       <Clints />
