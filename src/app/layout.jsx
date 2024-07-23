@@ -2,6 +2,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { HeaderComponent } from "@/components/shared/Header";
 import { FooterComponent } from "@/components/shared/Footer";
+import NextTopLoader from "nextjs-toploader";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,8 +19,15 @@ export default function RootLayout({ children }) {
       <link rel="icon" href="/images/Logo.png" sizes="any" />
       <body className={inter.className}>
         <HeaderComponent />
+        <NextTopLoader
+          showSpinner={true}
+          color="radial-gradient(circle at 10% 20%, rgb(99, 55, 255) 0%, rgb(39, 170, 255) 90%)"
+          speed={800}
+        />
         {children}
         <FooterComponent />
+
+        <Toaster position="top-center" />
       </body>
     </html>
   );

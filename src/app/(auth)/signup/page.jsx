@@ -18,12 +18,16 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { SpinnerComponent } from "@/components/shared/Spinner";
+import toast from "react-hot-toast";
 
 export default function SignUp() {
   const gender = ["Male", "Female", "Others"];
   const router = useRouter();
 
   const [errorMessage, setErrorMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -50,10 +54,12 @@ export default function SignUp() {
   const onSubmit = async (data, event) => {
     event.preventDefault();
     setErrorMessage(null);
+    setLoading(() => true);
+
     try {
       const { cPassword, ...formData } = data;
       const response = await axios.post("/api/auth/register", formData);
-      console.log("this is : ", response.data.message);
+      toast.success("SignUp Successfully...");
       router.push("/login");
     } catch (error) {
       ({
@@ -67,6 +73,7 @@ export default function SignUp() {
 
         setTimeout(() => {
           setErrorMessage(() => null);
+          setLoading(() => false);
         }, 4800);
       }
     }
@@ -398,7 +405,7 @@ export default function SignUp() {
             </div>
           </div>
           <Button disabled={!isRoleSelected} type="submit" color={"blue"}>
-            Create an account
+            {loading ? <SpinnerComponent /> : "Create an account"}
           </Button>
         </form>
       </Card>

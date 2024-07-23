@@ -16,10 +16,13 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SpinnerComponent } from "@/components/shared/Spinner";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -37,11 +40,14 @@ export default function Login() {
 
   const onSubmit = async (data, event) => {
     event.preventDefault();
-    setErrorMessage(null);
+    setErrorMessage(() => null);
+    setLoading(() => true);
     try {
-      const response = await axios.post("/api/auth/login", data);
-      console.log("this is : ", response.data.message);
-      router.push("/dashboard");
+      let { status, token } = await axios.post("/api/auth/login", data);
+      if (status === 200) {
+        toast.success("Login Successfully...");
+        router.push("/dashboard");
+      }
     } catch (error) {
       ({
         response: { data },
@@ -54,6 +60,7 @@ export default function Login() {
 
         setTimeout(() => {
           setErrorMessage(() => null);
+          setLoading(() => false);
         }, 4800);
       }
     }
@@ -119,7 +126,11 @@ export default function Login() {
             </Label>
           </div>
         </div>
-        <form method="POST" className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          method="POST"
+          className="flex flex-col gap-4"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <div className="flex flex-col gap-4 md:flex-row">
             <div>
               <div className="block mb-2">
@@ -130,13 +141,7 @@ export default function Login() {
                 type="email"
                 name="email"
                 placeholder="name@company.com"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^\S+@\S+\.\S+$/,
-                    message: "Invalid email format",
-                  },
-                })}
+                {...register("email")}
                 required
               />
               {errors?.email && setErrorMessage(null) && (
@@ -196,8 +201,9 @@ export default function Login() {
               Forgot Password?
             </Link>
           </div>
+
           <Button disabled={!isRoleSelected} type="submit" color={"blue"}>
-            Sign in to your account
+            {loading ? <SpinnerComponent /> : "Sign in to your account"}
           </Button>
         </form>
       </Card>

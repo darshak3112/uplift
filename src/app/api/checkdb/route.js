@@ -1,4 +1,4 @@
-import { dbConnect } from "@/lib/db";
+import { dbConnect } from "@/_lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {

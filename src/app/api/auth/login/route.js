@@ -1,14 +1,15 @@
-import { dbConnect } from '@/lib/db';
+import { dbConnect } from '@/_lib/db';
 import Tester from '@/model/testerModel';
 import Creator from '@/model/creatorModel';
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT } from 'jose';
 import { z } from 'zod';
 
 dbConnect();
 
-const JWT_SECRET = process.env.TOKEN_SECRET; // Replace this with your actual secret key, preferably stored in environment variables
+// Ensure the JWT secret key is properly encoded
+const JWT_SECRET = new TextEncoder().encode(process.env.TOKEN_SECRET);// Replace this with your actual secret key, preferably stored in environment variables
 
 
 const loginSchema = z.object({
@@ -29,7 +30,7 @@ export async function POST(req) {
         let existingUser;
 
         if (role === "tester") {
-            existingUser = await Tester.findOne({ email  });
+            existingUser = await Tester.findOne({ email });
             if (!existingUser) {
                 return NextResponse.json({ message: "Tester not found" }, { status: 404 });
             }
@@ -53,16 +54,20 @@ export async function POST(req) {
             }
 
             // Create a JWT token
-            const token = jwt.sign(
-                payload,
-                JWT_SECRET,
-                { expiresIn: '24h' } // Token expires in 24 hour
-            );
+            const token = await new SignJWT(payload)
+                .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+                .setExpirationTime('30d')
+                .sign(JWT_SECRET);
 
-            return NextResponse.json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} logged in successfully`, token }, { status: 200 });
+            const response = NextResponse.json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} logged in successfully` }, { status: 200 }, token);
+
+            // Set the token in an HTTP-only cookie
+            response.cookies.set('authorizeToken', token, { httpOnly: false, secure: true, path: '/' })
+
+            return response;
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error:', error.message);
         return NextResponse.json({ message: "An error occurred", error: error.message }, { status: 500 });
     }
 }
