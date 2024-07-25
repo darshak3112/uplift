@@ -18,7 +18,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { SpinnerComponent } from "@/components/shared/Spinner";
+import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
 
 export default function SignUp() {
@@ -42,8 +42,8 @@ export default function SignUp() {
       password: "",
       cPassword: "",
       gender: "",
-      role: null,
-      pincode: null,
+      role: "",
+      pincode: "000000",
       dob: "",
       country: "",
     },
@@ -301,7 +301,6 @@ export default function SignUp() {
                   type="number"
                   name="pincode"
                   placeholder="xxxxxx"
-                  max={999999}
                   {...register("pincode", {
                     required: "Pincode is required",
                   })}

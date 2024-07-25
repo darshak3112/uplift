@@ -17,7 +17,7 @@ const userSchema = z.object({
     dob: z.string().date(), // Ensures valid ISO 8601 date format
     country: z.string().min(2), // Adjust minimum length as needed
     role: z.enum(['tester', 'creator']),
-    pincode: z.string().min(4), // Optional pincode with minimum length
+    pincode: z.string().optional(), // Optional pincode with minimum length
 });
 
 export async function POST(req) {

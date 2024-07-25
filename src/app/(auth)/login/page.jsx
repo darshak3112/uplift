@@ -16,8 +16,10 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { SpinnerComponent } from "@/components/shared/Spinner";
+import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
+import { useAppDispatch } from "@/_lib/store/hooks";
+import { login } from "@/_lib/store/features/userInfo/userInfoSlice";
 
 export default function Login() {
   const router = useRouter();
@@ -37,14 +39,20 @@ export default function Login() {
   });
 
   const isRoleSelected = watch("role");
+  const dispatch = useAppDispatch();
 
   const onSubmit = async (data, event) => {
     event.preventDefault();
     setErrorMessage(() => null);
     setLoading(() => true);
     try {
-      let { status, token } = await axios.post("/api/auth/login", data);
+      let {
+        status,
+        data: { id, role },
+      } = await axios.post("/api/auth/login", data);
+
       if (status === 200) {
+        dispatch(login({ id, role }));
         toast.success("Login Successfully...");
         router.push("/dashboard");
       }
