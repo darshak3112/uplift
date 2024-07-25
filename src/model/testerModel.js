@@ -16,15 +16,16 @@ const testerSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    mobileNo:{
+    mobileNo: {
         type: String,
         unique: true,
+        default: null,
         required: true
     },
     pincode: {
-        type : Number,
-        required : true,
-        default : null
+        type: Number,
+        required: true,
+        default: null
     },
     country: {
         type: String,
@@ -32,12 +33,13 @@ const testerSchema = new mongoose.Schema({
         default: null
     },
     password: {
-        type : String,
-        required : true,
-        default : null
+        type: String,
+        required: true,
+        default: null
     },
     gender: {
         type: String,
+        num: ['Male', 'Female', 'Others'],
         required: true,
         default: null
     },
@@ -50,11 +52,11 @@ const testerSchema = new mongoose.Schema({
     taskHistory: [{
         type: Schema.Types.ObjectId,
         ref: 'Task',
-        task_flag : {
+        task_flag: {
             enum: ['completed', 'pending', 'rejected'],
         }
     }]
-},{timestamps: true})
+}, { timestamps: true })
 
 const Tester = mongoose.models.testers || mongoose.model("testers", testerSchema);
 

@@ -14,7 +14,7 @@ export function Blogs() {
             elevate your content strategy.
           </p>
         </div>
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-12 mx-auto lg:grid-cols-2 md:mx-10">
           <article className="p-6 bg-white border border-gray-200 rounded-lg shadow-md ">
             <div className="flex items-center justify-between mb-5 text-gray-500">
               <span className="bg-primary-100 text-primary-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded ">
