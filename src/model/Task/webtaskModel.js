@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const webtaskSchema = new mongoose.Schema({
+const webTaskSchema = new mongoose.Schema({
     creator :{
         type : Schema.Types.ObjectId,
         ref : 'Creator',
@@ -40,6 +40,7 @@ const webtaskSchema = new mongoose.Schema({
         required : true
     },
     questions:[{
+        id : Number,
         title:String,
         answer_type:String,
     }],
@@ -55,6 +56,6 @@ const webtaskSchema = new mongoose.Schema({
     ],
 })
 
-const Web = mongoose.models.web || mongoose.model("web", webtaskSchema);
+const Web = mongoose.models.web || mongoose.model("web", webTaskSchema);
 
 export default Web;

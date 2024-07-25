@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const youtubetaskSchema = new mongoose.Schema({
+const youtubeTaskSchema = new mongoose.Schema({
     creator :{
         type : Schema.Types.ObjectId,
         ref : 'Creator',
@@ -40,7 +40,7 @@ const youtubetaskSchema = new mongoose.Schema({
         required : true
     },
     youtube_thumbnails:[{
-        title:String,
+        url :String,
     }],
     web_link:{
         type : String,
@@ -54,6 +54,6 @@ const youtubetaskSchema = new mongoose.Schema({
     ],
 })
 
-const Youtube = mongoose.models.youtube || mongoose.model("youtube", youtubetaskSchema);
+const Youtube = mongoose.models.youtube || mongoose.model("youtube", youtubeTaskSchema);
 
 export default Youtube;

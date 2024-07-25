@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const marketingtaskSchema = new mongoose.Schema({
+const marketingTaskSchema = new mongoose.Schema({
     creator :{
         type : Schema.Types.ObjectId,
         ref : 'Creator',
@@ -63,6 +63,6 @@ const marketingtaskSchema = new mongoose.Schema({
     ],
 })
 
-const Marketing = mongoose.models.marketing || mongoose.model("marketing", marketingtaskSchema);
+const Marketing = mongoose.models.marketing || mongoose.model("marketing", marketingTaskSchema);
 
 export default Marketing;

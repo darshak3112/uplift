@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const surveytaskSchema = new mongoose.Schema({
+const surveyTaskSchema = new mongoose.Schema({
     creator :{
         type : Schema.Types.ObjectId,
         ref : 'Creator',
@@ -51,6 +51,6 @@ const surveytaskSchema = new mongoose.Schema({
     ],
 })
 
-const Survey = mongoose.models.survey || mongoose.model("survey", msurveytaskSchema);
+const Survey = mongoose.models.survey || mongoose.model("survey", surveyTaskSchema);
 
 export default Survey;

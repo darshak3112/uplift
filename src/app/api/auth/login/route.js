@@ -1,79 +1,58 @@
-import { dbConnect } from '@/_lib/db';
+import { dbConnect } from '@/lib/db';
 import Tester from '@/model/testerModel';
 import Creator from '@/model/creatorModel';
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import { SignJWT } from 'jose';
-import { z } from 'zod';
+import jwt from "jsonwebtoken";
 
 dbConnect();
 
-// Ensure the JWT secret key is properly encoded
-const JWT_SECRET = new TextEncoder().encode(process.env.TOKEN_SECRET);// Replace this with your actual secret key, preferably stored in environment variables
-
-
-const loginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8), // Adjust min length as needed
-    role: z.enum(['tester', 'creator']),
-});
+const JWT_SECRET = "your_jwt_secret_key";
 
 export async function POST(req) {
     try {
         const reqBody = await req.json();
-        const parsedData = loginSchema.safeParse(reqBody);
+        const { email, password, role } = reqBody;
 
-        if (!parsedData.success) {
-            return NextResponse.json({ message: 'Invalid request body', errors: parsedData?.error?.issues }, { status: 400 });
+        const missingFields = [];
+        if (!email) missingFields.push('email');
+        if (!password) missingFields.push('password');
+        if (!role) missingFields.push('role');
+        if (missingFields.length > 0) {
+            return NextResponse.json({ message: "The following fields are required: " + missingFields.join(', ') });
         }
-        const { email, password, role } = parsedData.data;
+        if (role !== "tester" && role !== "creator") {
+            return NextResponse.json({ message: "Invalid Role" });
+        }
 
         let existingUser;
-
         if (role === "tester") {
             existingUser = await Tester.findOne({ email });
             if (!existingUser) {
-                return NextResponse.json({ message: "Tester not found" }, { status: 404 });
+                return NextResponse.json({ message: "Tester not found" });
             }
-        } else if (role === "creator") {
+        } else {
             existingUser = await Creator.findOne({ email });
             if (!existingUser) {
-                return NextResponse.json({ message: "Creator not found" }, { status: 404 });
+                return NextResponse.json({ message: "Creator not found" });
             }
-        } else {
-            return NextResponse.json({ message: "Invalid Role" }, { status: 401 });
         }
+
         const isMatch = await bcryptjs.compare(password, existingUser.password);
-
         if (!isMatch) {
-            return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
-        } else {
-            const payload = {
-                id: existingUser._id,
-                email: existingUser.email,
-                role
-            }
-            // Create a JWT token
-            const token = await new SignJWT(payload)
-                .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
-                .setExpirationTime('30d')
-                .sign(JWT_SECRET);
-
-            const response = NextResponse.json({
-                message: `${role.charAt(0).toUpperCase() + role.slice(1)} logged in successfully`,
-                role,
-                id: existingUser._id
-            }, { status: 200 });
-
-            // Set the token in an HTTP-only cookie
-            response.cookies.set('authorizeToken', token, { httpOnly: false, secure: true, path: '/' })
-            response.cookies.set('authorizeRole', role, { httpOnly: false, secure: true, path: '/' })
-            response.cookies.set('authorizeId', existingUser._id, { httpOnly: false, secure: true, path: '/' })
-
-            return response;
+            return NextResponse.json({ message: "Invalid credentials" });
         }
+
+        // Create a JWT token
+        const token = jwt.sign(
+            { id: existingUser._id, email: existingUser.email, role: existingUser.role },
+            JWT_SECRET,
+            { expiresIn: '24h' } // Token expires in 24 hour
+        );
+
+        return NextResponse.json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} logged in successfully`, token });
     } catch (error) {
-        console.error('Error:', error.message);
-        return NextResponse.json({ message: "An error occurred", error: error.message }, { status: 500 });
+        console.error('Error:', error);
+        return NextResponse.json({ message: "An error occurred", error: error.message });
     }
 }
