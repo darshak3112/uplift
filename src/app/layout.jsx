@@ -1,9 +1,11 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { HeaderComponent } from "@/components/shared/Header";
-import { FooterComponent } from "@/components/shared/Footer";
+import { HeaderComponent } from "@/components/shared/header/Header";
+import { FooterComponent } from "@/components/shared/footer/Footer";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
+import StoreProvider from "@/components/shared/storeProvider/StoreProvider";
+import FetchData from "@/components/shared/fetchData/FetchData";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,16 +20,18 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <link rel="icon" href="/images/Logo.png" sizes="any" />
       <body className={inter.className}>
-        <HeaderComponent />
-        <NextTopLoader
-          showSpinner={true}
-          color="radial-gradient(circle at 10% 20%, rgb(99, 55, 255) 0%, rgb(39, 170, 255) 90%)"
-          speed={800}
-        />
-        {children}
-        <FooterComponent />
-
-        <Toaster position="top-center" />
+        <StoreProvider>
+          <FetchData />
+          <HeaderComponent />
+          <NextTopLoader
+            showSpinner={true}
+            color="radial-gradient(circle at 10% 20%, rgb(99, 55, 255) 0%, rgb(39, 170, 255) 90%)"
+            speed={800}
+          />
+          {children}
+          <FooterComponent />
+          <Toaster position="top-center" />
+        </StoreProvider>
       </body>
     </html>
   );

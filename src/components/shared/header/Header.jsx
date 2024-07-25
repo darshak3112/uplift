@@ -9,12 +9,15 @@ import { getCookie } from "cookies-next";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useAppDispatch } from "@/_lib/store/hooks";
+import { logout } from "@/_lib/store/features/userInfo/userInfoSlice";
 
 export function HeaderComponent() {
   const [authorizeToken, setAuthorizeToken] = useState(null);
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     // Ensure this runs only on the client
@@ -30,6 +33,7 @@ export function HeaderComponent() {
 
       if (status === 200) {
         toast.success("Logout Successfully...");
+        dispatch(logout());
         setAuthorizeToken(null); // Clear the token state
         router.push("/login");
       }

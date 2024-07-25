@@ -9,7 +9,8 @@ export async function middleware(request) {
     }
 
     try {
-        await jwtVerify(token.value, new TextEncoder().encode(process.env.TOKEN_SECRET));
+        const { payload: { id, role } } = await jwtVerify(token.value, new TextEncoder().encode(process.env.TOKEN_SECRET));
+
     } catch (error) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -18,5 +19,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-    matcher: ['/dashboard'],
+    matcher: ['/dashboard', '/dashboard/:path*'],
 };

@@ -22,8 +22,9 @@ export async function POST(req) {
     try {
         const reqBody = await req.json();
         const parsedData = loginSchema.safeParse(reqBody);
+
         if (!parsedData.success) {
-            return NextResponse.json({ message: 'Invalid request body', errors: parsedData.error.issues }, { status: 400 });
+            return NextResponse.json({ message: 'Invalid request body', errors: parsedData?.error?.issues }, { status: 400 });
         }
         const { email, password, role } = parsedData.data;
 
@@ -35,34 +36,39 @@ export async function POST(req) {
                 return NextResponse.json({ message: "Tester not found" }, { status: 404 });
             }
         } else if (role === "creator") {
-            existingUser = await Creator.findOne({ email }, { status: 404 });
+            existingUser = await Creator.findOne({ email });
             if (!existingUser) {
                 return NextResponse.json({ message: "Creator not found" }, { status: 404 });
             }
         } else {
             return NextResponse.json({ message: "Invalid Role" }, { status: 401 });
         }
-
         const isMatch = await bcryptjs.compare(password, existingUser.password);
+
         if (!isMatch) {
             return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
         } else {
             const payload = {
                 id: existingUser._id,
                 email: existingUser.email,
-                role: existingUser.role
+                role
             }
-
             // Create a JWT token
             const token = await new SignJWT(payload)
                 .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
                 .setExpirationTime('30d')
                 .sign(JWT_SECRET);
 
-            const response = NextResponse.json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} logged in successfully` }, { status: 200 }, token);
+            const response = NextResponse.json({
+                message: `${role.charAt(0).toUpperCase() + role.slice(1)} logged in successfully`,
+                role,
+                id: existingUser._id
+            }, { status: 200 });
 
             // Set the token in an HTTP-only cookie
             response.cookies.set('authorizeToken', token, { httpOnly: false, secure: true, path: '/' })
+            response.cookies.set('authorizeRole', role, { httpOnly: false, secure: true, path: '/' })
+            response.cookies.set('authorizeId', existingUser._id, { httpOnly: false, secure: true, path: '/' })
 
             return response;
         }

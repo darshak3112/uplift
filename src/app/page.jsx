@@ -1,14 +1,14 @@
 import Image from "next/image";
-import { HeroBanner } from "@/components/landing/HeroBanner";
-import { Featured } from "@/components/landing/Featured";
-import { Clints } from "@/components/landing/Clients";
-import { Testimony } from "@/components/landing/Testimony";
-import { Pricing } from "@/components/landing/Pricing";
-import { Stats } from "@/components/landing/Stats";
-import { ContactUs } from "@/components/landing/ContactUs";
-import { Blogs } from "@/components/landing/Blogs";
-import { FAQ } from "@/components/landing/FAQ";
-import { GoToTopButton } from "@/components/shared/GoToTop";
+import { HeroBanner } from "@/components/landing/heroBanner/HeroBanner";
+import { Featured } from "@/components/landing/featured/Featured";
+import { Clints } from "@/components/landing/clients/Clients";
+import { Testimony } from "@/components/landing/testimony/Testimony";
+import { Pricing } from "@/components/landing/pricing/Pricing";
+import { Stats } from "@/components/landing/stats/Stats";
+import { ContactUs } from "@/components/landing/contactUs/ContactUs";
+import { Blogs } from "@/components/landing/blogs/Blogs";
+import { FAQ } from "@/components/landing/faq/FAQ";
+import { GoToTopButton } from "@/components/shared/goToTop/GoToTop";
 
 export default function Home() {
   return (

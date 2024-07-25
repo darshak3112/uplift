@@ -7,6 +7,8 @@ export async function GET() {
 
         // Clear the authentication token cookie
         response.cookies.delete("authorizeToken")
+        response.cookies.delete("authorizeId")
+        response.cookies.delete("authorizeRole")
 
         return response;
     } catch (error) {
