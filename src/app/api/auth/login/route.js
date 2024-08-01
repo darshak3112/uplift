@@ -1,7 +1,7 @@
 import { dbConnect } from '@/_lib/db';
 import Tester from '@/model/testerModel';
 import Creator from '@/model/creatorModel';
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { SignJWT } from 'jose';
 import { z } from 'zod';

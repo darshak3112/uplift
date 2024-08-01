@@ -57,7 +57,9 @@ const creatorSchema = new mongoose.Schema({
             enum: ['Open', 'Closed', 'Pending'],
             required: true
         }
-    }]
+    }],
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
 }, { timestamps: true })
 
 const Creator = mongoose.models.creators || mongoose.model("creators", creatorSchema);
