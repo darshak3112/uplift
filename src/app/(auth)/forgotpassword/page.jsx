@@ -1,9 +1,63 @@
 "use client";
 
-import { Button, Card, Checkbox, Label, TextInput, HR } from "flowbite-react";
+import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Label,
+  TextInput,
+  Radio,
+} from "flowbite-react";
 import Image from "next/image";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
-export default function Login() {
+export default function ForgotPassword() {
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm({
+    defaultValues: {
+      email: "",
+      role: null,
+    },
+  });
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const isRoleSelected = watch("role");
+
+  const onSubmit = async (data, event) => {
+    event.preventDefault();
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setLoading(true);
+    try {
+      const response = await axios.post("/api/auth/forgot-password", {
+        email: data.email,
+        role: data.role,
+      });
+
+      if (response?.status === 200) {
+        setSuccessMessage(response?.data?.message);
+        toast.success(response?.data?.message);
+        router.push("/login");
+      }
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="flex justify-center gap-24 px-5 py-8 md:px-14">
       <Card className="max-w-lg">
@@ -31,25 +85,64 @@ export default function Login() {
             </span>
           </p>
         </div>
-        <form className="flex flex-col gap-4">
-          <div className="flex">
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="email1" value="Email" />
-              </div>
-              <TextInput
-                className="w-full min-w-full"
-                id="email1"
-                type="email"
-                placeholder="name@company.com"
-                required
-              />
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2 ">
+            <div className="mr-5">
+              <Label htmlFor="lableUser" className="text-lg">
+                User type :
+              </Label>
             </div>
+            <Radio
+              id="creatorRadio"
+              name="role"
+              value="creator"
+              className="cursor-pointer"
+              {...register("role", { required: true })}
+            />
+            <Label htmlFor="creator" className="cursor-pointer">
+              Creator
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Radio
+              id="testerRadio"
+              name="role"
+              value="tester"
+              className="cursor-pointer"
+              {...register("role", { required: true })}
+            />
+            <Label htmlFor="tester" className="cursor-pointer">
+              Tester
+            </Label>
+          </div>
+        </div>
+        <form
+          method="POST"
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-4"
+        >
+          <div>
+            <div className="block mb-2">
+              <Label htmlFor="email" value="Email" />
+            </div>
+            <TextInput
+              id="email"
+              type="email"
+              name="email"
+              placeholder="name@company.com"
+              {...register("email")}
+              required
+            />
+            {errors?.email && setErrorMessage(null) && (
+              <p className="mt-2 text-sm text-red-500">
+                {errors?.email?.message}
+              </p>
+            )}
           </div>
 
           <div className="my-2">
             <div className="flex gap-1">
-              <Checkbox id="remember" />
+              <Checkbox checked disabled color={"blue"} id="remember" />
               <Label htmlFor="accept" className="text-gray-500">
                 I agree to uplift&apos;s{" "}
                 <span className="text-blue-700 hover:underline hover:cursor-pointer">
@@ -62,9 +155,15 @@ export default function Login() {
               </Label>
             </div>
           </div>
-          <Button type="submit" color={"blue"}>
-            Reset password
+          <Button disabled={!isRoleSelected} type="submit" color={"blue"}>
+            {loading ? <SpinnerComponent /> : "Reset Password"}
           </Button>
+          {errorMessage && (
+            <p className="mt-2 text-sm text-red-500">{errorMessage}</p>
+          )}
+          {successMessage && (
+            <p className="mt-2 text-sm text-green-500">{successMessage}</p>
+          )}
           <p className="text-sm font-normal text-gray-700">
             If you still need help, contact{" "}
             <span className="font-semibold text-blue-700 hover:cursor-pointer hover:underline">

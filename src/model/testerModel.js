@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+
 const testerSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -19,8 +19,8 @@ const testerSchema = new mongoose.Schema({
     mobileNo: {
         type: String,
         unique: true,
-        default: null,
-        required: true
+        required: true,
+        default: null
     },
     pincode: {
         type: Number,
@@ -39,7 +39,7 @@ const testerSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        num: ['Male', 'Female', 'Others'],
+        enum: ['Male', 'Female', 'Others'],
         required: true,
         default: null
     },
@@ -49,15 +49,14 @@ const testerSchema = new mongoose.Schema({
         default: null
     },
     google_auth_url: String,
-    taskHistory: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Task',
-        task_flag: {
-            enum: ['completed', 'pending', 'rejected'],
-        }
-    }]
-}, { timestamps: true })
+    taskHistory: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Task'
+        }],
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
+}, { timestamps: true });
 
-const Tester = mongoose.models.testers || mongoose.model("testers", testerSchema);
-
+const Tester = mongoose.models.Tester || mongoose.model('Tester', testerSchema);
 export default Tester;

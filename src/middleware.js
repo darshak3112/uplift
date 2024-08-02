@@ -9,7 +9,7 @@ export async function middleware(request) {
     }
 
     try {
-        const { payload: { id, role } } = await jwtVerify(token.value, new TextEncoder().encode(process.env.TOKEN_SECRET));
+        await jwtVerify(token.value, new TextEncoder().encode(process.env.TOKEN_SECRET));
 
     } catch (error) {
         return NextResponse.redirect(new URL('/login', request.url));
