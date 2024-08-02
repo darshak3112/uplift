@@ -39,6 +39,10 @@ const surveytaskSchema = new mongoose.Schema({
         type : String,
         required : true
     },
+    noOfQuestions:{
+        type : Number,
+        required : true
+    },
     questions:[{
         title:String,
         answer_type:String,

@@ -14,7 +14,6 @@ export default function ResetPassword({ params }) {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     setValue,
   } = useForm({
     defaultValues: { password: "", role: null },
