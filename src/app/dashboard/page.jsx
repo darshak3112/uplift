@@ -1,19 +1,21 @@
 "use client";
 
-import AddTask from "@/components/dashBoard/addTask/AddTask";
-import AppliedTask from "@/components/dashBoard/appliedTask/AppliedTask";
-import AvailableTask from "@/components/dashBoard/availableTask/AvailableTask";
-import Default from "@/components/dashBoard/analytics/Analytics";
+
+import AppliedTask from "@/components/dashBoard/tester/appliedTask/AppliedTask";
+import AvailableTask from "@/components/dashBoard/tester/availableTask/AvailableTask";
+import Default from "@/components/dashBoard/creator/analytics/Analytics";
 import History from "@/components/dashBoard/history/History";
 import OnGoingTask from "@/components/dashBoard/onGoingTask/OnGoingTask";
 import Profile from "@/components/dashBoard/profile/Profile";
-import ResultCreator from "@/components/dashBoard/resultCreator/ResultCreator";
-import ResultTester from "@/components/dashBoard/resultTester/ResultTester";
+import ResultCreator from "@/components/dashBoard/creator/resultCreator/ResultCreator";
+import ResultTester from "@/components/dashBoard/tester/resultTester/ResultTester";
 import TicketGeneration from "@/components/dashBoard/ticketGeneration/TicketGeneration";
 import Wallet from "@/components/dashBoard/wallet/Wallet";
-import Analytics from "@/components/dashBoard/analytics/Analytics";
-import DefaultComponent from "@/components/dashBoard/default/Default";
+import Analytics from "@/components/dashBoard/creator/analytics/Analytics";
+
 import { useSearchParams } from "next/navigation";
+import AddTask from "@/components/dashBoard/creator/addTask/AddTask";
+import DefaultComponent from "@/components/dashBoard/default/Default";
 
 const componentsMap = {
   "available-task": AvailableTask,

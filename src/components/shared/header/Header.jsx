@@ -92,7 +92,7 @@ export function HeaderComponent() {
             <ScrollLink
               className="text-xl cursor-pointer hover:text-blue-600"
               key={item?.text}
-              activeClass="active"
+              activeclassName="active"
               to={item?.id}
               spy={true}
               smooth={true}

@@ -3,8 +3,8 @@ import Image from "next/image";
 
 export default function NotFound() {
   return (
-    <section class="bg-white flex flex-col justify-center">
-      <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+    <section className="bg-white flex flex-col justify-center">
+      <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
         <Image
           className="justify-center mx-auto felx"
           height={350}
@@ -15,7 +15,7 @@ export default function NotFound() {
         <h3 className="flex justify-center mb-4 text-base font-bold tracking-tight text-blue-600 md:text-2xl ">
           404 Not Found
         </h3>
-        <p class="mb-4 flex justify-center text-xl md:text-3xl tracking-tight font-bold text-gray-900 ">
+        <p className="mb-4 flex justify-center text-xl md:text-3xl tracking-tight font-bold text-gray-900 ">
           Whoops! That page doesn’t exist.
         </p>
         <span className="flex justify-center ">
