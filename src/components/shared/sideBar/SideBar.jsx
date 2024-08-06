@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sidebar } from "flowbite-react";
 import { HiChartPie, HiMenu, HiX } from "react-icons/hi";
 import { CgProfile } from "react-icons/cg";
@@ -13,6 +13,10 @@ export function SideBarComponent() {
   const [isSidebarVisible, setSidebarVisible] = useState(false);
   const tempRole = useAppSelector((state) => state.userInfo.role);
   const [role, setRole] = useState(tempRole);
+
+  useEffect(() => {
+    setRole(tempRole), [];
+  });
 
   const toggleSidebar = () => {
     setSidebarVisible(!isSidebarVisible);

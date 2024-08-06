@@ -6,7 +6,7 @@ import PriductReview from "../creatorTask/productReview/ProductReview";
 import YouTube from "../creatorTask/youtube/YouTube";
 import AppTesting from "../creatorTask/appTesting/AppTesting";
 import Survey from "../creatorTask/survey/Survey";
-import DefaultComponent from "../default/Default";
+import DefaultComponent from "../../default/Default";
 
 export default function AddTask() {
   const TaskList = [
