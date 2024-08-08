@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const surveytaskSchema = new mongoose.Schema({
     creator :{
-        type : Schema.Types.ObjectId,
+        type : mongoose.Schema.Types.ObjectId,
         ref : 'Creator',
         required : true
     },
@@ -46,15 +46,16 @@ const surveytaskSchema = new mongoose.Schema({
     questions:[{
         title:String,
         answer_type:String,
+        options:[]
     }],
     tester_ids : [
         {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: 'Tester'
         }
     ],
-})
+},{ timestamps: true})
 
-const Survey = mongoose.models.survey || mongoose.model("survey", msurveytaskSchema);
+const Survey = mongoose.models.Survey || mongoose.model("Survey", surveytaskSchema);
 
 export default Survey;

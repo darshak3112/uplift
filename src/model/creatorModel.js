@@ -51,11 +51,6 @@ const creatorSchema = new mongoose.Schema({
             type: Schema.Types.ObjectId,
             ref: 'Task',
             required: true
-        },
-        task_flag: {
-            type: String,
-            enum: ['Open', 'Closed', 'Pending'],
-            required: true
         }
     }],
     resetPasswordToken: String,

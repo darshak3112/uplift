@@ -61,7 +61,7 @@ const marketingtaskSchema = new mongoose.Schema({
             ref: 'Tester'
         }
     ],
-})
+},{timestamps: true})
 
 const Marketing = mongoose.models.marketing || mongoose.model("marketing", marketingtaskSchema);
 
