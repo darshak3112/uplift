@@ -193,8 +193,8 @@ export default function Login() {
           <Button disabled={!isRoleSelected} color={"light"}>
             <FcGoogle className="w-5 h-5 mr-2" />
             {!isRoleSelected
-              ? "To sign up with google please select role"
-              : "Sign up with google"}
+              ? "To login with google please select role"
+              : "Login with google"}
           </Button>
 
           <div className="flex items-center justify-between gap-2 my-2">

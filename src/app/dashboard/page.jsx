@@ -1,6 +1,5 @@
 "use client";
 
-
 import AppliedTask from "@/components/dashBoard/tester/appliedTask/AppliedTask";
 import AvailableTask from "@/components/dashBoard/tester/availableTask/AvailableTask";
 import Default from "@/components/dashBoard/creator/analytics/Analytics";
@@ -16,6 +15,7 @@ import Analytics from "@/components/dashBoard/creator/analytics/Analytics";
 import { useSearchParams } from "next/navigation";
 import AddTask from "@/components/dashBoard/creator/addTask/AddTask";
 import DefaultComponent from "@/components/dashBoard/default/Default";
+import SurveysResponse from "@/components/dashBoard/tester/response/surveys/SurveysResponse";
 
 const componentsMap = {
   "available-task": AvailableTask,
@@ -29,15 +29,26 @@ const componentsMap = {
   wallet: Wallet,
   ticket: TicketGeneration,
   profile: Profile,
+  surveys: SurveysResponse,
 };
 
 export default function Dashboard() {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("activeTab");
-  const ActiveComponent = componentsMap[activeTab] || DefaultComponent;
+  const taskId = searchParams.get("taskId");
+  const type = searchParams.get("type");
+
+  let ComponentToRender = DefaultComponent;
+
+  if (taskId && type) {
+    ComponentToRender = componentsMap[type] || DefaultComponent;
+  } else if (activeTab) {
+    ComponentToRender = componentsMap[activeTab] || DefaultComponent;
+  }
+
   return (
     <div>
-      <ActiveComponent />
+      <ComponentToRender />
     </div>
   );
 }
