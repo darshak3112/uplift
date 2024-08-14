@@ -25,7 +25,7 @@ const Task = new Schema({
     },
     youtube:{
         type: Schema.Types.ObjectId,
-        ref: 'Youtube_Task',
+        ref: 'Youtube',
     },
 }, {timestamps: true});
 
