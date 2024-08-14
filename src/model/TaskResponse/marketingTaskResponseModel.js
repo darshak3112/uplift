@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const marketingTaskResponseModel = new Schema ({
+
     taskId : {
         type : Schema.Types.ObjectId,
         ref : 'Marketing',
@@ -34,6 +35,7 @@ const marketingTaskResponseModel = new Schema ({
         }
     }]
 },{timestamps : true})
+
 
 const MarketingResponse = mongoose.models.MarketingResponse || mongoose.model("MarketingResponse", marketingTaskResponseModel);
 

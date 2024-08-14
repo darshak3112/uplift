@@ -57,7 +57,6 @@ export async function POST(req) {
                 }
             }
             
-            // Reverse the heading array
             heading.reverse();
             
             return NextResponse.json({ message: 'History', history: heading }, { status: 200 });
@@ -95,7 +94,7 @@ export async function POST(req) {
                 }
             }
             
-            // Reverse the heading array
+
             heading.reverse();
             
             return NextResponse.json({ message: 'History', history: heading }, { status: 200 });

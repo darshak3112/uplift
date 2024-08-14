@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const webTaskResponseModel = new Schema ({
+const surveyTaskResponseMondel = new Schema ({
     taskId : {
         type : Schema.Types.ObjectId,
-        ref : 'Web',
+        ref : 'Survey',
         required : true,
     },
     testerId : {
@@ -26,7 +26,6 @@ const webTaskResponseModel = new Schema ({
     }]
 },{timestamps: true})
 
-const WebResponse = mongoose.models.WebResponse || mongoose.model("WebResponse", webTaskResponseModel);
+const SurveyResponse = mongoose.models.SurveyResponse || mongoose.model("SurveyResponse", surveyTaskResponseMondel);
 
-
-export default WebResponse;
+export default SurveyResponse;
