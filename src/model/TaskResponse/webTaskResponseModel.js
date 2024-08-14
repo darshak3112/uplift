@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const webTaskResponseMondel = new Schema ({
+const webTaskResponseModel = new Schema ({
     taskId : {
         type : Schema.Types.ObjectId,
         ref : 'Web',
@@ -26,6 +26,7 @@ const webTaskResponseMondel = new Schema ({
     }]
 },{timestamps: true})
 
-const WebResponse = mongoose.models.webResponse || mongoose.model("webResponse", webResponseTaskSchema);
+const WebResponse = mongoose.models.WebResponse || mongoose.model("WebResponse", webTaskResponseModel);
+
 
 export default WebResponse;
