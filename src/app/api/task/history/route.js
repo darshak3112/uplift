@@ -44,7 +44,7 @@ export async function POST(req) {
                     }
                 }
             }
-            return NextResponse.json({ message: 'History', heading }, { status: 200 });
+            return NextResponse.json({ message: 'History', history: heading }, { status: 200 });
         } else {
             const creator = await Creator.findById(id);
             if (!creator) {
@@ -60,7 +60,7 @@ export async function POST(req) {
                     if (survey) {
                         const surveyResponses = await SurveyResponse.find({ taskId: survey._id });
                         const results = {};
-                        
+
                         surveyResponses.forEach((response) => {
                             response.response.forEach(({ questionId, answer }) => {
                                 if (!results[questionId]) {
@@ -93,7 +93,7 @@ export async function POST(req) {
                     }
                 }
             }
-            return NextResponse.json({ message: 'History', history:heading }, { status: 200 });
+            return NextResponse.json({ message: 'History', history: heading }, { status: 200 });
         }
     } catch (error) {
         console.error('Error in POST request:', error);

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const youtubetaskSchema = new mongoose.Schema({
     creator :{
-        type : Schema.Types.ObjectId,
+        type : mongoose.Schema.Types.ObjectId,
         ref : 'Creator',
         required : true
     },
@@ -41,6 +41,7 @@ const youtubetaskSchema = new mongoose.Schema({
     },
     youtube_thumbnails:[{
         title:String,
+        link :String
     }],
     web_link:{
         type : String,
@@ -48,7 +49,7 @@ const youtubetaskSchema = new mongoose.Schema({
     },
     tester_ids : [
         {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: 'Tester'
         }
     ],

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const marketingtaskSchema = new mongoose.Schema({
     creator :{
-        type : Schema.Types.ObjectId,
+        type : mongoose.Schema.Types.ObjectId,
         ref : 'Creator',
         required : true
     },
@@ -57,7 +57,7 @@ const marketingtaskSchema = new mongoose.Schema({
     },
     tester_ids : [
         {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: 'Tester'
         }
     ],

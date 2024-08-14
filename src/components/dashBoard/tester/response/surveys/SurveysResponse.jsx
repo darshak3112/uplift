@@ -20,16 +20,17 @@ export default function SurveysResponse() {
   let taskInfo = useAppSelector((state) => type && state.availableTask[type]);
   let testerId = useAppSelector((state) => state.userInfo.id);
 
-  taskInfo = taskInfo.filter((task) => task._id === taskId);
+  taskInfo = taskInfo.filter((task) => task?._id === taskId);
 
-  const noOfQuestions = taskInfo[0].noOfQuestions;
-  const questions = taskInfo[0].questions;
+  const noOfQuestions = taskInfo[0]?.noOfQuestions || null;
+  const questions = taskInfo[0]?.questions || null;
 
   const responseTaskData = useAppSelector(
     (state) => state.responseTask.response
   );
 
-  const handleSubmitTask = async () => {
+  const handleSubmitTask = async (event) => {
+    event.preventDefault();
     try {
       let surveyResponse = { taskId, testerId, response: responseTaskData };
       const response = await axios.post(

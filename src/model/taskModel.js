@@ -24,7 +24,7 @@ const taskSchema = new Schema({
     },
     youtube: {
         type: Schema.Types.ObjectId,
-        ref: 'Youtube_Task',
+        ref: 'Youtube',
     },
     task_flag: {
         type: String,

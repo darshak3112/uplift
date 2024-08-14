@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const surveyTaskResponseMondel = new Schema ({
+const marketingTaskResponseModel = new Schema ({
+
     taskId : {
         type : Schema.Types.ObjectId,
         ref : 'Marketing',
@@ -35,6 +36,7 @@ const surveyTaskResponseMondel = new Schema ({
     }]
 },{timestamps : true})
 
-const SurveyResponse = mongoose.models.surveyResponse || mongoose.model("surveyResponse", surveyResponseTaskSchema);
 
-export default SurveyResponse;
+const MarketingResponse = mongoose.models.MarketingResponse || mongoose.model("MarketingResponse", marketingTaskResponseModel);
+
+export default MarketingResponse;

@@ -11,6 +11,10 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useAppDispatch } from "@/_lib/store/hooks";
 import { logout } from "@/_lib/store/features/userInfo/userInfoSlice";
+import { clearHistoryUser } from "@/_lib/store/features/tester/history/historyTesterSlice";
+import { clearResponseTask } from "@/_lib/store/features/tester/responseTask/responseTaskSlice";
+import { clearAvailableTask } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
+import { clearSurveyTask } from "@/_lib/store/features/creator/surveyTask/surveyTaskSlice";
 
 export function HeaderComponent() {
   const [authorizeToken, setAuthorizeToken] = useState(null);
@@ -34,6 +38,10 @@ export function HeaderComponent() {
       if (status === 200) {
         toast.success("Logout Successfully...");
         dispatch(logout());
+        dispatch(clearHistoryUser());
+        dispatch(clearResponseTask());
+        dispatch(clearAvailableTask());
+        dispatch(clearSurveyTask());
         setAuthorizeToken(null); // Clear the token state
         router.push("/login");
       }

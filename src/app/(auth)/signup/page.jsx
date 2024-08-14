@@ -197,7 +197,7 @@ export default function SignUp() {
               <TextInput
                 id="mobileNo"
                 type="text"
-                placeholder="+911234567890"
+                placeholder="1234567890"
                 required
                 {...register("mobileNo", {
                   required: "Mobile number is required",
