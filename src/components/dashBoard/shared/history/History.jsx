@@ -10,6 +10,7 @@ export default function HistoryUser() {
   const testerId = useAppSelector((state) => state.userInfo.id);
   const role = useAppSelector((state) => state.userInfo.role);
   const historyData = useAppSelector((state) => state.historyUser);
+  
 
   const fetchHistoryTasks = async () => {
     try {
@@ -42,7 +43,7 @@ export default function HistoryUser() {
   }, [testerId]);
 
   return (
-    <div className="grid grid-cols-1 gap-3 mx-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 p-5 rounded-lg shadow-md sm:grid-cols-2 lg:grid-cols-3 bg-gray-50">
       {historyData.history.map((task, index) => (
         <HistoryCard key={index} task={task} />
       ))}

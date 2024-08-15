@@ -1,20 +1,20 @@
 import mongoose from "mongoose";
 import Survey from "@/model/Task/surveytaskModel";
 import Youtube from "@/model/Task/youtubetaskModel";
-import App from "@/model/Task/apptaskModel"; 
-import Marketing from "@/model/Task/marketingtaskModel"; 
-import Web from "@/model/Task/webtaskModel"; 
+import App from "@/model/Task/apptaskModel";
+import Marketing from "@/model/Task/marketingtaskModel";
+import Web from "@/model/Task/webtaskModel";
 import SurveyResponse from "@/model/TaskResponse/surveyTaskResponseModel";
-import YoutubeResponse from "@/model/TaskResponse/youtubeTaskResponseModel"; 
-import AppResponse from "@/model/TaskResponse/appTaskResponseModel"; 
-import MarketingResponse from "@/model/TaskResponse/marketingTaskResponseModel"; 
-import WebResponse from "@/model/TaskResponse/webTaskResponseModel"; 
+import YoutubeResponse from "@/model/TaskResponse/youtubeTaskResponseModel";
+import AppResponse from "@/model/TaskResponse/appTaskResponseModel";
+import MarketingResponse from "@/model/TaskResponse/marketingTaskResponseModel";
+import WebResponse from "@/model/TaskResponse/webTaskResponseModel";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
     try {
         const reqBody = await req.json();
-        
+
         if (!reqBody) {
             return NextResponse.json({ message: 'Invalid request body', reqBody }, { status: 400 });
         }
@@ -24,9 +24,9 @@ export async function POST(req) {
         if (!id || !type) {
             return NextResponse.json({ message: 'Invalid request body', reqBody }, { status: 400 });
         }
-       
+
         let task, responseModel, formattedResults;
-        
+
         switch (type) {
             case 'survey':
                 task = await Survey.findById(id);
@@ -74,7 +74,7 @@ export async function POST(req) {
             });
 
             const questionMap = task.questions.map(({ title }, index) => ({
-                id: index + 1, 
+                id: index + 1,
                 title: title
             }));
 

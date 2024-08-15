@@ -2,12 +2,14 @@ import { useRouter } from "next/navigation";
 import { Button, Card } from "flowbite-react";
 import { useAppSelector } from "@/_lib/store/hooks";
 
-function TaskCard({ task,type }) {
+function TaskCard({ task, type }) {
   const router = useRouter();
 
   const handleRedirect = () => {
     // Assuming you want to redirect to a path that includes the task ID
-    router.push(`/dashboard?activeTab=available-task&taskId=${task._id}&type=${type}`);
+    router.push(
+      `/dashboard?activeTab=available-task&taskId=${task._id}&type=${type}`
+    );
   };
 
   return (
@@ -51,7 +53,7 @@ export default function AvailableTasksCard() {
   const availableTaskData = useAppSelector((state) => state.availableTask);
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 p-5 rounded-lg shadow-md sm:grid-cols-2 lg:grid-cols-3 bg-gray-50">
       {availableTaskData?.surveys?.map((task) => (
         <TaskCard key={task._id} task={task} type={"surveys"} />
       ))}
