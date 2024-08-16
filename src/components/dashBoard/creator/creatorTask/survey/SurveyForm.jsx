@@ -13,18 +13,17 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import { addSurveyTask } from "@/_lib/store/features/creator/surveyTask/surveyTaskSlice";
 
 export default function SurveyForm({ setTaskCreated }) {
-  const gender = ["Male", "Female", "Both"];
+  const tester_gender = ["Male", "Female", "Both"];
 
   const dispatch = useAppDispatch();
 
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [errorMesstester_age, setErrorMesstester_age] = useState(null);
   const [loading, setLoading] = useState(false);
   const creator = useAppSelector((state) => state.userInfo.id);
   const {
@@ -33,50 +32,37 @@ export default function SurveyForm({ setTaskCreated }) {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      taskName: "",
-      noOfTester: "",
+      heading: "",
+      tester_no: "",
       noOfQuestions: "",
-      age: "",
-      gender: "",
+      tester_age: "",
+      tester_gender: "",
       country: "",
-      startDate: "",
-      endingDate: "",
-      instructuions: "",
+      post_date: "",
+      end_date: "",
+      instruction: "",
     },
   });
 
   const onSubmit = async (data, event) => {
     event.preventDefault();
-    setErrorMessage(null);
+    setErrorMesstester_age(null);
     setLoading(() => true);
-    const formData = { creator, ...data };
-    setTimeout(() => {
+
+    let post_date = new Date(data.post_date);
+    let endDate = new Date(data.end_date);
+    if (post_date > endDate) {
+      setErrorMesstester_age("Starting Date cannot be after Ending Date");
       setLoading(() => false);
-      dispatch(addSurveyTask(data));
-      toast.success("Task created successfully....");
-      setTaskCreated(() => true);
-    }, 2000);
-    // try {
-    //   const { cPassword, ...formData } = data;
-    //   const response = await axios.post("/api/auth/register", formData);
-    //   toast.success("SignUp Successfully...");
-    //   router.push("/login");
-    // } catch (error) {
-    //   ({
-    //     response: { data },
-    //   } = error);
-
-    //   if (data?.message) {
-    //     setTimeout(() => {
-    //       setErrorMessage(() => data?.message);
-    //     }, 1500);
-
-    //     setTimeout(() => {
-    //       setErrorMessage(() => null);
-    //       setLoading(() => false);
-    //     }, 4800);
-    //   }
-    // }
+    } else {
+      const formData = { creator, ...data };
+      setTimeout(() => {
+        setLoading(() => false);
+        dispatch(addSurveyTask(formData));
+        toast.success("Task created successfully....");
+        setTaskCreated(() => true);
+      }, 2000);
+    }
   };
 
   return (
@@ -97,14 +83,14 @@ export default function SurveyForm({ setTaskCreated }) {
             <div className="flex flex-col gap-4 md:flex-row">
               <div>
                 <div className="block mb-2">
-                  <Label htmlFor="taskName" value="Task Name" />
+                  <Label htmlFor="heading" value="Task Name" />
                 </div>
                 <TextInput
-                  id="taskName"
+                  id="heading"
                   type="text"
                   placeholder="Enter task name"
-                  name="taskName"
-                  {...register("taskName", {
+                  name="heading"
+                  {...register("heading", {
                     required: "Task name is required",
                   })}
                   required
@@ -112,14 +98,14 @@ export default function SurveyForm({ setTaskCreated }) {
               </div>
               <div>
                 <div className="block mb-2">
-                  <Label htmlFor="noOfTester" value="No of Testers" />
+                  <Label htmlFor="tester_no" value="No of Testers" />
                 </div>
                 <TextInput
-                  id="noOfTester"
+                  id="tester_no"
                   type="number"
-                  name="noOfTester"
+                  name="tester_no"
                   placeholder="xx"
-                  {...register("noOfTester", {
+                  {...register("tester_no", {
                     required: "No. of testers is required",
                   })}
                   required
@@ -137,6 +123,7 @@ export default function SurveyForm({ setTaskCreated }) {
                   name="noOfQuestions"
                   placeholder="xx"
                   max={20}
+                  min={3}
                   {...register("noOfQuestions", {
                     required: "No. of testers is required",
                   })}
@@ -145,22 +132,22 @@ export default function SurveyForm({ setTaskCreated }) {
               </div>
               <div>
                 <div className="block mb-2">
-                  <Label htmlFor="age" value="Min Age of Testers" />
+                  <Label htmlFor="tester_age" value="Min age of Testers" />
                 </div>
                 <Select
-                  id="age"
-                  name="age"
+                  id="tester_age"
+                  name="tester_age"
                   defaultValue="NA"
-                  {...register("age", {
+                  {...register("tester_age", {
                     minLength: {
                       value: 1,
-                      message: "Select age",
+                      messtester_age: "Select tester_age",
                     },
                   })}
                   required
                 >
                   <option value="NA" disabled>
-                    Select Age
+                    Select tester_age
                   </option>
                   {Array.from({ length: 62 - 16 }, (_, index) => (
                     <option key={index + 16} value={index + 16}>
@@ -174,24 +161,24 @@ export default function SurveyForm({ setTaskCreated }) {
               <div>
                 <div>
                   <div className="block mb-2">
-                    <Label htmlFor="gender" value="Gender" />
+                    <Label htmlFor="tester_gender" value="Gender" />
                   </div>
                   <Select
-                    id="gender"
-                    name="gender"
+                    id="tester_gender"
+                    name="tester_gender"
                     defaultValue="NA"
-                    {...register("gender", {
+                    {...register("tester_gender", {
                       minLength: {
                         value: 1,
-                        message: "Select Gender",
+                        messtester_age: "Select tester_gender",
                       },
                     })}
                     required
                   >
                     <option value="NA" disabled>
-                      Select Gender
+                      Select tester_gender
                     </option>
-                    {gender.map((test) => (
+                    {tester_gender.map((test) => (
                       <option key={test} value={test}>
                         {test}
                       </option>
@@ -211,7 +198,7 @@ export default function SurveyForm({ setTaskCreated }) {
                     {...register("country", {
                       minLength: {
                         value: 1,
-                        message: "Select Country",
+                        messtester_age: "Select Country",
                       },
                     })}
                     required
@@ -231,14 +218,14 @@ export default function SurveyForm({ setTaskCreated }) {
             <div className="flex flex-col gap-4 md:gap-16 md:flex-row">
               <div>
                 <div className="block mb-2">
-                  <Label htmlFor="startDate" value="Staring Date" />
+                  <Label htmlFor="post_date" value="Starting Date" />
                 </div>
 
                 <input
                   type="date"
-                  name="startDate"
+                  name="post_date"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                  {...register("startDate", {
+                  {...register("post_date", {
                     required: "Starting Date is required",
                   })}
                   required
@@ -246,14 +233,14 @@ export default function SurveyForm({ setTaskCreated }) {
               </div>
               <div>
                 <div className="block mb-2">
-                  <Label htmlFor="endingDate" value="Ending Date" />
+                  <Label htmlFor="end_date" value="Ending Date" />
                 </div>
 
                 <input
                   type="date"
-                  name="endingDate"
+                  name="end_date"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                  {...register("endingDate", {
+                  {...register("end_date", {
                     required: "Ending Date is required",
                   })}
                   required
@@ -264,25 +251,25 @@ export default function SurveyForm({ setTaskCreated }) {
               <div>
                 <div className="block mb-2">
                   <Label
-                    htmlFor="instructuions"
+                    htmlFor="instruction"
                     className="min-w-full"
-                    value="Instructuions"
+                    value="instruction"
                   />
                 </div>
                 <Textarea
-                  id="instructuions"
-                  {...register("instructuions", {
+                  id="instruction"
+                  {...register("instruction", {
                     required: "Ending Date is required",
                   })}
-                  placeholder="Enter Instructuions..."
+                  placeholder="Enter instruction..."
                   required
                   rows={4}
                 />
               </div>
             </div>
-            {errorMessage && (
+            {errorMesstester_age && (
               <p className="flex justify-center -mb-8 text-base font-normal text-red-500">
-                {errorMessage}
+                {errorMesstester_age}
               </p>
             )}
             <HR />

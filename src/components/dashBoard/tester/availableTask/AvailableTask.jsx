@@ -10,11 +10,11 @@ export default function AvailableTask() {
   const dispatch = useAppDispatch();
   const testerId = useAppSelector((state) => state.userInfo.id);
   let availableTaskData = useAppSelector((state) => state.availableTask);
-  
+
   const fetchAvaialbletasks = async () => {
     try {
       if (!availableTaskData?.isTaskAvailable && testerId) {
-        const response = await axios.post("/api/task/list", {
+        const response = await axios.post("/api/task/survey/list", {
           testerId,
         });
 

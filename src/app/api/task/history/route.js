@@ -41,12 +41,12 @@ export async function POST(req) {
                             id: survey.id,
                             type: "survey",
                             heading: survey.heading,
-                            instruction: survey.instruction 
+                            instruction: survey.instruction
                         });
                     }
-                } else if(task && task.type === 'youtube'){
+                } else if (task && task.type === 'youtube') {
                     const youtube = await Youtube.findById(task.youtube);
-                    if(youtube){
+                    if (youtube) {
                         heading.push({
                             id: youtube.id,
                             type: "youtube",
@@ -56,9 +56,9 @@ export async function POST(req) {
                     }
                 }
             }
-            
+
             heading.reverse();
-            
+
             return NextResponse.json({ message: 'History', history: heading }, { status: 200 });
         } else {
             const creator = await Creator.findById(id);
@@ -81,9 +81,9 @@ export async function POST(req) {
                         });
                     }
                 }
-                else if(task && task.type === 'youtube'){
+                else if (task && task.type === 'youtube') {
                     const youtube = await Youtube.findById(task.youtube);
-                    if(youtube){
+                    if (youtube) {
                         heading.push({
                             id: youtube.id,
                             type: "youtube",
@@ -93,10 +93,10 @@ export async function POST(req) {
                     }
                 }
             }
-            
+
 
             heading.reverse();
-            
+
             return NextResponse.json({ message: 'History', history: heading }, { status: 200 });
         }
     } catch (error) {
