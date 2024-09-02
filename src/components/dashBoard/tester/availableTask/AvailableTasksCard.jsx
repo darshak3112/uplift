@@ -57,6 +57,9 @@ export default function AvailableTasksCard() {
       {availableTaskData?.surveys?.map((task) => (
         <TaskCard key={task._id} task={task} type={"surveys"} />
       ))}
+      {availableTaskData?.youtube?.map((task) => (
+        <TaskCard key={task._id} task={task} type={"youtube"} />
+      ))}
     </div>
   );
 }

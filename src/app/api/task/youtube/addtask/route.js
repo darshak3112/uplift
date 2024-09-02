@@ -62,7 +62,7 @@ export async function POST(req) {
         });
         await creatorExists.save();
 
-        return NextResponse.json({ message: 'Success', result }, { status: 200 });
+        return NextResponse.json({ message: 'Success', result }, { status: 201 });
 
 
     } catch (error) {

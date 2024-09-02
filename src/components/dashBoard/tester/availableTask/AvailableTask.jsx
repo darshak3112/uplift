@@ -2,9 +2,7 @@ import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import AvailableTasksCard from "./AvailableTasksCard";
 import axios from "axios";
 import { useEffect } from "react";
-import {
-  addAvailableTasks,
-} from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
+import { addAvailableTasks } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
 
 export default function AvailableTask() {
   const dispatch = useAppDispatch();
@@ -14,13 +12,12 @@ export default function AvailableTask() {
   const fetchAvaialbletasks = async () => {
     try {
       if (!availableTaskData?.isTaskAvailable && testerId) {
-        const response = await axios.post("/api/task/survey/list", {
+        const response = await axios.post("/api/task/list", {
           testerId,
         });
-
         if (response.status === 200) {
-          const { surveys } = response.data;
-          dispatch(addAvailableTasks(surveys));
+          const { surveys, youtube } = response.data;
+          dispatch(addAvailableTasks({ surveys, youtube }));
         }
       }
     } catch (error) {

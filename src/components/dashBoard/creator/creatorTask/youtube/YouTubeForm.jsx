@@ -16,9 +16,9 @@ import { useForm } from "react-hook-form";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
-import { addSurveyTask } from "@/_lib/store/features/creator/surveyTask/surveyTaskSlice";
+import { addYouTubeTask } from "@/_lib/store/features/creator/youTubeTask/youTubeTaskSlice";
 
-export default function SurveyForm({ setTaskCreated }) {
+export default function YouTubeForm({ setTaskCreated }) {
   const tester_gender = ["Male", "Female", "Both"];
 
   const dispatch = useAppDispatch();
@@ -34,7 +34,7 @@ export default function SurveyForm({ setTaskCreated }) {
     defaultValues: {
       heading: "",
       tester_no: "",
-      noOfQuestions: "",
+      noOfThumbNails: "",
       tester_age: "",
       tester_gender: "",
       country: "",
@@ -64,7 +64,7 @@ export default function SurveyForm({ setTaskCreated }) {
       const formData = { creator, ...data };
       setTimeout(() => {
         setLoading(() => false);
-        dispatch(addSurveyTask(formData));
+        dispatch(addYouTubeTask(formData));
         toast.success("Task created successfully....");
         setTaskCreated(() => true);
       }, 2000);
@@ -77,7 +77,7 @@ export default function SurveyForm({ setTaskCreated }) {
         <Card className="max-w-lg">
           <div className="flex flex-col items-center">
             <h5 className="text-2xl font-bold tracking-tight text-gray-900 ">
-              Survey Task
+              YouTube Thumbnail
             </h5>
           </div>
 
@@ -121,17 +121,17 @@ export default function SurveyForm({ setTaskCreated }) {
             <div className="flex flex-col gap-4 md:flex-row">
               <div>
                 <div className="block mb-2">
-                  <Label htmlFor="noOfQuestions" value="No of Questions" />
+                  <Label htmlFor="noOfThumbNails" value="No of ThumbNails" />
                 </div>
                 <TextInput
-                  id="noOfQuestions"
+                  id="noOfThumbNails"
                   type="number"
-                  name="noOfQuestions"
+                  name="noOfThumbNails"
                   placeholder="xx"
-                  max={20}
-                  min={3}
-                  {...register("noOfQuestions", {
-                    required: "No. of testers is required",
+                  max={4}
+                  min={2}
+                  {...register("noOfThumbNails", {
+                    required: "No. of thumbnails is required",
                   })}
                   required
                 />

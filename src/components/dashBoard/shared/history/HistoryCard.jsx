@@ -1,6 +1,5 @@
 import { Card } from "flowbite-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export function HistoryCard({ task }) {
   const searchParams = useSearchParams();
