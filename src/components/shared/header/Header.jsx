@@ -11,10 +11,12 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useAppDispatch } from "@/_lib/store/hooks";
 import { logout } from "@/_lib/store/features/userInfo/userInfoSlice";
-import { clearHistoryUser } from "@/_lib/store/features/tester/history/historyTesterSlice";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 import { clearResponseTask } from "@/_lib/store/features/tester/responseTask/responseTaskSlice";
 import { clearAvailableTask } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
 import { clearSurveyTask } from "@/_lib/store/features/creator/surveyTask/surveyTaskSlice";
+import { clearAnalyticsData } from "@/_lib/store/features/creator/analyticsData/analyticsDataSlice";
+import { clearYouTubeTask } from "@/_lib/store/features/creator/youTubeTask/youTubeTaskSlice";
 
 export function HeaderComponent() {
   const [authorizeToken, setAuthorizeToken] = useState(null);
@@ -42,6 +44,8 @@ export function HeaderComponent() {
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
         dispatch(clearSurveyTask());
+        dispatch(clearAnalyticsData());
+        dispatch(clearYouTubeTask());
         setAuthorizeToken(null); // Clear the token state
         router.push("/login");
       }

@@ -16,6 +16,7 @@ import AddTask from "@/components/dashBoard/creator/addTask/AddTask";
 import DefaultComponent from "@/components/dashBoard/default/Default";
 import SurveysResponse from "@/components/dashBoard/tester/response/surveys/SurveysResponse";
 import HistoryUser from "@/components/dashBoard/shared/history/History";
+import YouTubeResponse from "@/components/dashBoard/tester/response/youtube/YouTubeResponse";
 
 const componentsMap = {
   "available-task": AvailableTask,
@@ -30,6 +31,7 @@ const componentsMap = {
   ticket: TicketGeneration,
   profile: Profile,
   surveys: SurveysResponse,
+  youtube: YouTubeResponse,
 };
 
 export default function Dashboard() {

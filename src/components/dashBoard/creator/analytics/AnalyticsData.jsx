@@ -1,163 +1,133 @@
-import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import axios from "axios";
+import dynamic from "next/dynamic";
+import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
+import toast from "react-hot-toast";
+import { setAnalyticsData } from "@/_lib/store/features/creator/analyticsData/analyticsDataSlice";
+import Skeleton from "@/components/shared/skeleton/Skeleton";
 
-// Dynamically import ApexCharts to avoid SSR issues
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-export default function AnalyticsData() {
+const fetchAnalyticsData = async (id, type) => {
+  try {
+    const response = await axios.post("/api/task/analytics", { id, type });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching analytics data:", error);
+    toast.error("Failed to fetch analytics data");
+    return null;
+  }
+};
+
+const renderSurveyAnalytics = (task) => {
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {task.answers.map((answer, index) => {
+        const options = Object.keys(answer.answers);
+        const counts = options.map((option) => answer.answers[option]);
+
+        const barOptions = {
+          chart: { type: "bar", height: 350 },
+          xaxis: {
+            categories: options,
+            title: { text: "Options" },
+          },
+          yaxis: {
+            title: { text: "Frequency of Answers" },
+          },
+          title: {
+            text: `Question ${index + 1}: ${answer.question}`,
+            align: "center",
+          },
+          plotOptions: {
+            bar: {
+              distributed: true,
+              horizontal: false,
+            },
+          },
+          colors: ["#008FFB", "#00E396", "#FEB019", "#FF4560"],
+        };
+
+        const barSeries = [{ name: "Frequency", data: counts }];
+
+        return (
+          <div key={index} className="p-4 bg-white rounded-lg shadow-md">
+            <Chart
+              options={barOptions}
+              series={barSeries}
+              type="bar"
+              height={350}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const renderYoutubeAnalytics = (task) => {
+  const youtubeOptions = task.answers.answers.map((answer) => answer.option);
+  const youtubeCounts = task.answers.answers.map((answer) => answer.count);
+
+  const pieOptions = {
+    chart: { type: "pie", height: 350 },
+    labels: youtubeOptions,
+  };
+
+  const pieSeries = youtubeCounts;
+
+  return (
+    <div className="p-6 bg-white rounded-lg shadow-md">
+      <h2 className="mb-4 text-2xl font-bold">{task.heading}</h2>
+      <p className="mb-6">{task.instruction}</p>
+      <Chart options={pieOptions} series={pieSeries} type="pie" height={350} />
+    </div>
+  );
+};
+
+const AnalyticsData = () => {
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   const type = searchParams.get("type");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Example of fetched data (replace with actual API call if needed)
-  const [data, setData] = useState({
-    message: "Analytics",
-    task: {
-      id: "66b7084974192238b4d7a8d4",
-      type: "survey",
-      heading: "project-1 submission task 3",
-      instruction: "ihiy",
-      answers: [
-        {
-          question: "2+5",
-          answers: { A: 10, B: 20, C: 30, D: 40 },
-        },
-        {
-          question: "8+5",
-          answers: { A: 5, B: 15, C: 25, D: 35 },
-        },
-        {
-          question: "5+9",
-          answers: { A: 12, B: 18, C: 24, D: 36 },
-        },
-      ],
-    },
-  });
+  const { analyticsData } = useAppSelector((state) => state.analyticsData);
 
-  // Bar Chart Options
-  const barChartOptions = {
-    chart: {
-      type: "bar",
-      toolbar: {
-        show: false,
-      },
-    },
-    title: {
-      text: "Survey Results",
-    },
-    xaxis: {
-      categories: data.task.answers.map((item) => item.question),
-    },
-  };
+  useEffect(() => {
+    const getAnalyticsData = async () => {
+      if (id && type) {
+        const existingData = analyticsData.find((item) => item.task.id === id);
 
-  const barChartSeries = [
-    {
-      name: "Responses",
-      data: data.task.answers.map((item) =>
-        Object.values(item.answers).reduce((a, b) => a + b, 0)
-      ),
-    },
-  ];
+        if (!existingData) {
+          const data = await fetchAnalyticsData(id, type);
+          if (data?.task) {
+            dispatch(setAnalyticsData([{ task: data.task }]));
+          }
+        }
+        setIsLoading(false);
+      }
+    };
 
-  // Pie Chart Options
-  const pieChartOptions = {
-    labels: Object.keys(data.task.answers[0].answers),
-    title: {
-      text: "Response Distribution (First Question)",
-    },
-  };
+    getAnalyticsData();
+  }, [id, type, dispatch, analyticsData]);
 
-  const pieChartSeries = Object.values(data.task.answers[0].answers);
+  if (isLoading) return <Skeleton className="container px-4 py-8 mx-auto" />;
 
-  // Line Chart Options
-  const lineChartOptions = {
-    chart: {
-      toolbar: {
-        show: false,
-      },
-    },
-    title: {
-      text: "Responses Over Time",
-    },
-    xaxis: {
-      categories: data.task.answers.map((item) => item.question),
-    },
-  };
+  const currentData = analyticsData.find((item) => item.task.id === id);
 
-  const lineChartSeries = [
-    {
-      name: "Responses",
-      data: data.task.answers.map((item) =>
-        Object.values(item.answers).reduce((a, b) => a + b, 0)
-      ),
-    },
-  ];
-
-  // Radar Chart Options
-  const radarChartOptions = {
-    chart: {
-      toolbar: {
-        show: false,
-      },
-    },
-    title: {
-      text: "Response Distribution (Radar)",
-    },
-    xaxis: {
-      categories: Object.keys(data.task.answers[0].answers),
-    },
-  };
-
-  const radarChartSeries = [
-    {
-      name: "Responses",
-      data: Object.values(data.task.answers[0].answers),
-    },
-  ];
+  if (!currentData)
+    return <p className="text-center text-gray-600">No data available</p>;
 
   return (
-    <div className="p-5 bg-white rounded-lg shadow-lg">
-      <h2 className="mb-5 text-2xl font-bold">{data.task.heading}</h2>
-      <p className="mb-5 text-sm text-gray-700">{data.task.instruction}</p>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="p-4 bg-gray-100 rounded-lg shadow-sm">
-          <Chart
-            options={barChartOptions}
-            series={barChartSeries}
-            type="bar"
-            height={350}
-          />
-        </div>
-
-        <div className="p-4 bg-gray-100 rounded-lg shadow-sm">
-          <Chart
-            options={pieChartOptions}
-            series={pieChartSeries}
-            type="pie"
-            height={350}
-          />
-        </div>
-
-        <div className="p-4 bg-gray-100 rounded-lg shadow-sm">
-          <Chart
-            options={lineChartOptions}
-            series={lineChartSeries}
-            type="line"
-            height={350}
-          />
-        </div>
-
-        <div className="p-4 bg-gray-100 rounded-lg shadow-sm">
-          <Chart
-            options={radarChartOptions}
-            series={radarChartSeries}
-            type="radar"
-            height={350}
-          />
-        </div>
-      </div>
+    <div className="container px-4 py-8 mx-auto">
+      <h1 className="mb-8 text-3xl font-bold text-center">Analytics Data</h1>
+      {currentData.task.type === "survey"
+        ? renderSurveyAnalytics(currentData.task)
+        : renderYoutubeAnalytics(currentData.task)}
     </div>
   );
-}
+};
+
+export default AnalyticsData;
