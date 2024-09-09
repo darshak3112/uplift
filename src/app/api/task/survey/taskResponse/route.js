@@ -39,7 +39,6 @@ export async function POST(req, res) {
             return NextResponse.json({ message: 'Task is already full', taskId }, { status: 400 });
         }
 
-        
         const testerExists = await Tester.findById(testerId);
         if (!testerExists) {
             return NextResponse.json({ message: 'Tester not found', testerId }, { status: 404 });
