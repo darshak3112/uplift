@@ -23,6 +23,6 @@ const appTaskResponseModel = new Schema({
     }]
 })
 
-const AppResponse = mongoose.models.AppResponse || mongoose.model("SurveyResponse", appTaskResponseModel);
+const AppResponse = mongoose.models.AppResponse || mongoose.model("AppResponse", appTaskResponseModel);
 
 export default AppResponse;

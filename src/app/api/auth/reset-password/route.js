@@ -4,10 +4,14 @@ import Creator from '@/model/creatorModel';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 
 dbConnect();
 
 export async function POST(req) {
+    const session = await mongoose.startSession(); // Start session for transaction
+    session.startTransaction(); // Begin transaction
+
     try {
         const resetPasswordSchema = z.object({
             password: z.string().min(8),
@@ -28,15 +32,17 @@ export async function POST(req) {
             user = await Tester.findOne({
                 resetPasswordToken: token,
                 resetPasswordExpires: { $gt: Date.now() },
-            });
+            }).session(session); // Use session for the query
         } else if (role === 'creator') {
             user = await Creator.findOne({
                 resetPasswordToken: token,
                 resetPasswordExpires: { $gt: Date.now() },
-            });
+            }).session(session); // Use session for the query
         }
 
         if (!user) {
+            await session.abortTransaction(); // Rollback if user not found
+            session.endSession();
             return NextResponse.json({ message: 'Password reset token is invalid or has expired' }, { status: 400 });
         }
 
@@ -45,10 +51,15 @@ export async function POST(req) {
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
 
-        await user.save();
+        await user.save({ session }); // Save user within the transaction
+
+        await session.commitTransaction(); // Commit the transaction if successful
+        session.endSession();
 
         return NextResponse.json({ message: 'Password has been reset' }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        await session.abortTransaction(); // Rollback in case of any error
+        session.endSession();
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }

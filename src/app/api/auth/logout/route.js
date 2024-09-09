@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-    try {
-        // Create a response
-        const response = NextResponse.json({ message: "Logged out successfully" }, { status: 200 });
+    const response = NextResponse.json({ message: "Logged out successfully" }, { status: 200 });
 
-        // Clear the authentication token cookie
-        response.cookies.delete("authorizeToken")
-        response.cookies.delete("authorizeId")
-        response.cookies.delete("authorizeRole")
+    try {
+        // Clear the authentication token and related cookies
+        response.cookies.delete("authorizeToken", { path: '/', httpOnly: true, secure: true, sameSite: 'strict' });
+        response.cookies.delete("authorizeId", { path: '/', httpOnly: true, secure: true, sameSite: 'strict' });
+        response.cookies.delete("authorizeRole", { path: '/', httpOnly: true, secure: true, sameSite: 'strict' });
 
         return response;
     } catch (error) {
-        console.error('Error:', error.message);
-        return NextResponse.json({ message: "An error occurred", error: error.message }, { status: 500 });
+        console.error('Error while clearing cookies:', error.message);
+        return NextResponse.json({ message: "An error occurred while clearing cookies", error: error.message }, { status: 500 });
     }
 }
