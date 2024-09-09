@@ -12,28 +12,26 @@ export async function POST(req) {
         if (!reqBody) {
             return NextResponse.json({ message: 'Invalid request body', reqBody }, { status: 400 });
         }
+
         const { taskId, testerId, response } = reqBody;
 
         if (!taskId || !testerId || !response) {
-            return NextResponse.json({ message: 'Invalid request body', reqBody }, { status: 400 });
+            return NextResponse.json({ message: 'Missing required fields', reqBody }, { status: 400 });
         }
 
         const taskExists = await Youtube.findById(taskId);
         if (!taskExists) {
-            return NextResponse.json({ message: 'Task not found', taskId }, { status: 404 });
+            return NextResponse.json({ message: 'YouTube task not found', taskId }, { status: 404 });
+        }
+
+        const task = await Task.findOne({ type: "youtube", youtube: taskId });
+        if (!task) {
+            return NextResponse.json({ message: 'Associated task not found', taskId }, { status: 404 });
         }
 
         if (taskExists.tester_no <= taskExists.tester_ids.length) {
-            const task = await Task.findOne({
-                type: "youtube",
-                youtube: taskId
-            });
-
-            if (task) {
-                task.task_flag = "Closed";
-                await task.save();
-            }
-
+            task.task_flag = "Closed";
+            await task.save();
             return NextResponse.json({ message: 'Task is already full', taskId }, { status: 400 });
         }
 
@@ -52,25 +50,17 @@ export async function POST(req) {
         taskExists.tester_ids.push(testerId);
         await taskExists.save();
 
-        const task = await Task.findOne({
-            type: "youtube",
-            youtube: taskId
-        });
-       
-        if (task) {
-            
-            testerExists.taskHistory.push(task._id);
-            await testerExists.save();
+        testerExists.taskHistory.push(task._id);
+        await testerExists.save();
 
-            if (taskExists.tester_no === taskExists.tester_ids.length) {
-                task.task_flag = "Closed";
-                await task.save();
-            }
+        if (taskExists.tester_no === taskExists.tester_ids.length) {
+            task.task_flag = "Closed";
+            await task.save();
         }
 
         return NextResponse.json({ message: 'Response added successfully', result }, { status: 200 });
-    }
-    catch (error) {
-        return NextResponse.json({ message: 'Internal server error', error }, { status: 500 });
+    } catch (error) {
+        console.error('Error:', error.message);
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }

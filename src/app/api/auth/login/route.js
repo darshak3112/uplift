@@ -9,8 +9,7 @@ import { z } from 'zod';
 dbConnect();
 
 // Ensure the JWT secret key is properly encoded
-const JWT_SECRET = new TextEncoder().encode(process.env.TOKEN_SECRET);// Replace this with your actual secret key, preferably stored in environment variables
-
+const JWT_SECRET = new TextEncoder().encode(process.env.TOKEN_SECRET); // Replace this with your actual secret key, preferably stored in environment variables
 
 const loginSchema = z.object({
     email: z.string().email(),
@@ -19,6 +18,10 @@ const loginSchema = z.object({
 });
 
 export async function POST(req) {
+    // Start a session for transaction handling
+    const session = await Tester.startSession(); // You can use any model to start the session
+    session.startTransaction();
+
     try {
         const reqBody = await req.json();
         const parsedData = loginSchema.safeParse(reqBody);
@@ -26,33 +29,44 @@ export async function POST(req) {
         if (!parsedData.success) {
             return NextResponse.json({ message: 'Invalid request body', errors: parsedData?.error?.issues }, { status: 400 });
         }
+
         const { email, password, role } = parsedData.data;
 
         let existingUser;
 
         if (role === "tester") {
-            existingUser = await Tester.findOne({ email });
+            existingUser = await Tester.findOne({ email }).session(session); // Use session in the query
             if (!existingUser) {
+                await session.abortTransaction();
+                session.endSession();
                 return NextResponse.json({ message: "Tester not found" }, { status: 404 });
             }
         } else if (role === "creator") {
-            existingUser = await Creator.findOne({ email });
+            existingUser = await Creator.findOne({ email }).session(session); // Use session in the query
             if (!existingUser) {
+                await session.abortTransaction();
+                session.endSession();
                 return NextResponse.json({ message: "Creator not found" }, { status: 404 });
             }
         } else {
+            await session.abortTransaction();
+            session.endSession();
             return NextResponse.json({ message: "Invalid Role" }, { status: 401 });
         }
+
         const isMatch = await bcryptjs.compare(password, existingUser.password);
 
         if (!isMatch) {
+            await session.abortTransaction();
+            session.endSession();
             return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
         } else {
             const payload = {
                 id: existingUser._id,
                 email: existingUser.email,
                 role
-            }
+            };
+
             // Create a JWT token
             const token = await new SignJWT(payload)
                 .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
@@ -66,13 +80,21 @@ export async function POST(req) {
             }, { status: 200 });
 
             // Set the token in an HTTP-only cookie
-            response.cookies.set('authorizeToken', token, { httpOnly: false, secure: true, path: '/' })
-            response.cookies.set('authorizeRole', role, { httpOnly: false, secure: true, path: '/' })
-            response.cookies.set('authorizeId', existingUser._id, { httpOnly: false, secure: true, path: '/' })
+            response.cookies.set('authorizeToken', token, { httpOnly: false, secure: true, path: '/' });
+            response.cookies.set('authorizeRole', role, { httpOnly: false, secure: true, path: '/' });
+            response.cookies.set('authorizeId', existingUser._id, { httpOnly: false, secure: true, path: '/' });
+
+            // Commit the transaction once everything is successful
+            await session.commitTransaction();
+            session.endSession();
 
             return response;
         }
     } catch (error) {
+        // If any error occurs, abort the transaction
+        await session.abortTransaction();
+        session.endSession();
+
         console.error('Error:', error.message);
         return NextResponse.json({ message: "An error occurred", error: error.message }, { status: 500 });
     }
