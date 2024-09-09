@@ -32,7 +32,6 @@ export async function POST(req) {
     const tasks = await Task.find({
       task_flag: "Open",
     });
-
     if (!tasks || tasks.length === 0) {
       return NextResponse.json(
         { message: "No task available", tasks },
@@ -42,7 +41,7 @@ export async function POST(req) {
 
     const allSurveys = await Promise.all(
       tasks.map(async (task) => {
-        if (task.type === "surveys") {
+        if (task.type === "survey") {
           {
             const survey = await Survey.findById(task.survey);
             if (
