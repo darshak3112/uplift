@@ -58,7 +58,7 @@ export async function POST(req) {
             await task.save();
         }
 
-        return NextResponse.json({ message: 'Response added successfully', result }, { status: 200 });
+        return NextResponse.json({ message: 'Response added successfully', result }, { status: 201 });
     } catch (error) {
         console.error('Error:', error.message);
         return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });

@@ -3,7 +3,7 @@ import Survey from "@/model/Task/surveytaskModel";
 import Youtube from "@/model/Task/youtubetaskModel";
 import Tester from "@/model/testerModel";
 import Creator from "@/model/creatorModel";
-import taskModel from "@/model/taskModel";
+import Task from "@/model/taskModel";
 import App from "@/model/Task/apptaskModel";
 import { NextResponse } from "next/server";
 
@@ -58,7 +58,12 @@ export async function POST(req) {
         }
 
         for (const taskId of history) {
-            const task = await taskModel.findById(taskId).session(session);
+            let task;
+            if (role === 'tester') {
+                task = await Task.findById(taskId).session(session);
+            } else {
+                task = await Task.findById(taskId.task).session(session);
+            }
             if (task) {
                 if (task.type === 'survey') {
                     const survey = await Survey.findById(task.survey).session(session);

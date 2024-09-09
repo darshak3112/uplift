@@ -21,14 +21,17 @@ export default function YouTubeResponse() {
   );
 
   const youtubeThumbnails = taskInfo?.youtube_thumbnails || [];
-  const testerId = useAppSelector((state) => state.userInfo?.id); // Assuming testerId is stored in the Redux store
+  const testerId = useAppSelector((state) => state.userInfo?.id);
 
   const [selectedThumbnailId, setSelectedThumbnailId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalThumbnail, setModalThumbnail] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for submit button
 
   const handleSubmitTask = async (event) => {
     event.preventDefault();
+    setIsSubmitting(true); // Disable the button
+
     try {
       // Find the selected thumbnail by its ID
       const selectedThumbnail = youtubeThumbnails.find(
@@ -39,7 +42,7 @@ export default function YouTubeResponse() {
       const taskSubmission = {
         taskId,
         testerId,
-        response: selectedThumbnail?.title || "No response selected", // Using `title` as the `src` value
+        response: selectedThumbnail?.title || "No response selected",
       };
 
       const response = await axios.post(
@@ -48,19 +51,16 @@ export default function YouTubeResponse() {
       );
 
       if (response.status === 201) {
-        // Clear tasks from Redux store
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
-        // Show success toast and redirect
         toast.success("Task submitted successfully!");
         router.push("/dashboard?activeTab=history");
       }
     } catch (error) {
-      console.error(
-        "Error Submitting task:",
-        error.response?.data || error.message
-      );
+      console.error("Error Submitting task:", error.response?.data || error.message);
       toast.error("Failed to submit task.");
+    } finally {
+      setIsSubmitting(false); // Re-enable the button after submission
     }
   };
 
@@ -97,7 +97,7 @@ export default function YouTubeResponse() {
             <CldImage
               width="400"
               height="300"
-              src={thumbnail.title} // Here, title is used as the src
+              src={thumbnail.title}
               alt={`Thumbnail ${thumbnail._id}`}
               className="object-cover w-full h-auto"
               onClick={() => handleThumbnailClick(thumbnail)}
@@ -109,9 +109,9 @@ export default function YouTubeResponse() {
         color="blue"
         onClick={handleSubmitTask}
         className="w-full mt-4 text-center"
-        disabled={selectedThumbnailId === null}
+        disabled={selectedThumbnailId === null || isSubmitting} // Disable if no selection or submitting
       >
-        Submit Task
+        {isSubmitting ? "Submitting..." : "Submit Task"} {/* Show different text during submission */}
       </Button>
 
       <Modal
@@ -126,7 +126,7 @@ export default function YouTubeResponse() {
               <CldImage
                 width="800"
                 height="600"
-                src={modalThumbnail.title} // Displaying the modal image
+                src={modalThumbnail.title}
                 alt={`Thumbnail ${modalThumbnail._id}`}
                 className="object-cover w-full h-auto"
               />

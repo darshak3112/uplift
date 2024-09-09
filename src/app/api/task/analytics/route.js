@@ -95,7 +95,7 @@ export async function POST(req) {
             }));
 
         } else if (type === 'youtube') {
-            const options = task.youtube_thumbnails.map((thumbnail) => thumbnail.link);
+            const options = task.youtube_thumbnails.map((thumbnail) => thumbnail.title);
             taskResponses.forEach((response) => {
                 const answer = response.response;
                 if (answer && options.includes(answer)) {
