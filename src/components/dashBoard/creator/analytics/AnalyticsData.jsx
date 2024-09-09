@@ -6,12 +6,14 @@ import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import toast from "react-hot-toast";
 import { setAnalyticsData } from "@/_lib/store/features/creator/analyticsData/analyticsDataSlice";
 import Skeleton from "@/components/shared/skeleton/Skeleton";
+import { CldImage } from "next-cloudinary";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const fetchAnalyticsData = async (id, type) => {
   try {
     const response = await axios.post("/api/task/analytics", { id, type });
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching analytics data:", error);
@@ -20,7 +22,12 @@ const fetchAnalyticsData = async (id, type) => {
   }
 };
 
-const renderSurveyAnalytics = ({ task, currentIndex, handlePrevious, handleNext }) => {
+const renderSurveyAnalytics = ({
+  task,
+  currentIndex,
+  handlePrevious,
+  handleNext,
+}) => {
   const answer = task.answers[currentIndex];
   const options = Object.keys(answer.answers);
   const counts = options.map((option) => answer.answers[option]);
@@ -52,7 +59,7 @@ const renderSurveyAnalytics = ({ task, currentIndex, handlePrevious, handleNext 
 
   return (
     <div key={currentIndex} className="relative p-4 bg-white rounded-lg shadow-md">
-      <div className="absolute top-2 right-2 flex space-x-2 z-10">
+      <div className="absolute z-10 flex space-x-2 top-2 right-2">
         <button
           onClick={handlePrevious}
           className="px-4 py-2 text-white bg-blue-600 rounded"
@@ -83,14 +90,21 @@ const renderYoutubeAnalytics = ({ task, handlePrevious, handleNext }) => {
 
   const pieOptions = {
     chart: { type: "pie", height: 350 },
+    plotOptions: {
+      pie: {
+        expandOnClick: false,
+      },
+    },
     labels: youtubeOptions,
+    legend: { show: false },
   };
 
   const pieSeries = youtubeCounts;
+  const colors = ["#008FFB", "#00E396", "#FEB019", "#FF4560"]; // Customize color as per your needs
 
   return (
     <div className="relative p-6 bg-white rounded-lg shadow-md">
-      <div className="absolute top-2 right-2 flex space-x-2 z-10">
+      <div className="absolute z-10 flex space-x-2 top-2 right-2">
         <button
           onClick={handlePrevious}
           className="px-4 py-2 text-white bg-blue-500 rounded"
@@ -106,6 +120,22 @@ const renderYoutubeAnalytics = ({ task, handlePrevious, handleNext }) => {
       </div>
       <h2 className="mb-4 text-2xl font-bold">{task.heading}</h2>
       <p className="mb-6">{task.instruction}</p>
+
+      {/* Displaying Images with border color */}
+      <div className="grid grid-cols-3 gap-4">
+        {youtubeOptions.map((option, index) => (
+          <CldImage
+            key={index}
+            src={option}
+            width="300"
+            height="200"
+            alt={`Thumbnail ${index + 1}`}
+            className="object-cover border-[8px]"
+            style={{ borderColor: colors[index % colors.length] }}
+          />
+        ))}
+      </div>
+
       <Chart options={pieOptions} series={pieSeries} type="pie" height={350} />
     </div>
   );
