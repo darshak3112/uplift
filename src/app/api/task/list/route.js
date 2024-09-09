@@ -42,7 +42,7 @@ export async function POST(req) {
 
     const allSurveys = await Promise.all(
       tasks.map(async (task) => {
-        if (task.type === "youtube") {
+        if (task.type === "surveys") {
           {
             const survey = await Survey.findById(task.survey);
             if (
