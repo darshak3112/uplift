@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import Youtube from "@/model/Task/youtubetaskModel";
 import YoutubeResponse from "@/model/TaskResponse/youtubeTaskResponseModel";
 import Task from "@/model/taskModel";
+import SurveyResponse from "@/model/TaskResponse/surveyTaskResponseModel";
 
 export async function POST(req, res) {
     try {
@@ -38,10 +39,7 @@ export async function POST(req, res) {
             return NextResponse.json({ message: 'Task is already full', taskId }, { status: 400 });
         }
 
-        const testerExists = await Tester.findById(testerId);
-        if (!testerExists) {
-            return NextResponse.json({ message: 'Tester not found', testerId }, { status: 404 });
-        }
+        
         const testerExists = await Tester.findById(testerId);
         if (!testerExists) {
             return NextResponse.json({ message: 'Tester not found', testerId }, { status: 404 });

@@ -22,7 +22,7 @@ const fetchAnalyticsData = async (id, type) => {
 
 const renderSurveyAnalytics = (task) => {
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-1 lg:grid-cols-1">
       {task.answers.map((answer, index) => {
         const options = Object.keys(answer.answers);
         const counts = options.map((option) => answer.answers[option]);
@@ -32,13 +32,23 @@ const renderSurveyAnalytics = (task) => {
           xaxis: {
             categories: options,
             title: { text: "Options" },
+            labels: {
+              show: false, // Show the labels at the bottom of the chart
+              
+            },
           },
           yaxis: {
             title: { text: "Frequency of Answers" },
           },
           title: {
             text: `Question ${index + 1}: ${answer.question}`,
-            align: "center",
+            margin:10,
+            style: {
+              fontSize: '14px', // Adjust font size if needed
+              whiteSpace: 'normal', // Allow text to wrap
+              overflowWrap: 'break-word',
+              textOverflow: 'ellipsis' // Break long words
+            },
           },
           plotOptions: {
             bar: {
@@ -52,12 +62,14 @@ const renderSurveyAnalytics = (task) => {
         const barSeries = [{ name: "Frequency", data: counts }];
 
         return (
-          <div key={index} className="p-4 bg-white rounded-lg shadow-md">
+          <div key={index} className="p-4 w-max bg-white rounded-lg shadow-md">
             <Chart
               options={barOptions}
               series={barSeries}
               type="bar"
-              height={350}
+              height={550}
+              width={1150}
+
             />
           </div>
         );
