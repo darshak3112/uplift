@@ -31,6 +31,7 @@ export const surveyTaskSlice = createSlice({
     },
 });
 
-export const { addSurveyTask, addQuestion, clearSurveyTask } = surveyTaskSlice.actions;
+export const { 
+    addSurveyTask, addQuestion, clearSurveyTask } = surveyTaskSlice.actions;
 
 export default surveyTaskSlice.reducer;
