@@ -4,6 +4,7 @@ import Creator from '@/model/creatorModel';
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { z } from 'zod';
+import mongoose from 'mongoose';
 
 dbConnect();
 
@@ -21,7 +22,7 @@ const userSchema = z.object({
 });
 
 export async function POST(req) {
-    const session = await Tester.startSession();  // Start a session
+    const session = await mongoose.startSession();  // Start a session
     session.startTransaction();  // Begin a transaction
     try {
         const reqBody = await req.json();

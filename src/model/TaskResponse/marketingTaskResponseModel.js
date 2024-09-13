@@ -20,7 +20,7 @@ const marketingTaskResponseModel = new Schema ({
                 type : String,
                 required:true
             },
-        },
+        }, 
         liveReview : {
             reviewLink : {
                 type : String,
