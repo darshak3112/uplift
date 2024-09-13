@@ -52,6 +52,12 @@ const apptaskSchema = new mongoose.Schema({
                 ref:'Tester'
             }
         ],
+        rejected_testers : [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref:'Tester'
+            }
+        ]
 },{timestamps:true});
 
 const App = mongoose.models.App || mongoose.model("App", apptaskSchema);

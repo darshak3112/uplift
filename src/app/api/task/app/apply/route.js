@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { NextResponse } from "next/server";
 import Tester from "@/model/testerModel";
 import App from "@/model/Task/apptaskModel";
+import Task from '@/model/taskModel';
 
 export async function POST(req) {
     const session = await mongoose.startSession(); // Start session for transaction
@@ -48,13 +49,24 @@ export async function POST(req) {
             return NextResponse.json({ message: "You have already applied for this task", taskExists }, { status: 400 });
         }
 
+        // Add tester to applied_testers
         taskExists.applied_testers.push(testerId);
         await taskExists.save({ session }); // Use session for the save operation
+
+        // Find corresponding task in the Task model
+        const task = await Task.findOne({ app: taskId }).session(session);
+
+        // Add task to tester's task history
+        await Tester.updateOne(
+            { _id: testerId },
+            { $push: { taskHistory: { taskId: task._id, status: 'applied' } } },
+            { session } // Ensure session is used in update
+        );
 
         await session.commitTransaction(); // Commit the transaction if successful
         session.endSession();
 
-        return NextResponse.json({ message: "Task applied successfully", taskExists }, { status: 200 });
+        return NextResponse.json({ message: "Task applied successfully", task }, { status: 200 });
     } catch (error) {
         await session.abortTransaction(); // Rollback in case of any error
         session.endSession();

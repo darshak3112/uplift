@@ -36,7 +36,8 @@ export async function POST(req) {
             return NextResponse.json({ message: "Tester ID is wrong", reqBody }, { status: 400 });
         }
 
-        const task = await App.findById(taskId).session(session); // Use session for the query
+        const task = await App.findById(taskId).session(session);
+        
         if (!task) {
             await session.abortTransaction(); // Rollback if task not found
             session.endSession();
@@ -55,7 +56,7 @@ export async function POST(req) {
             return NextResponse.json({ message: "This user is already selected", task }, { status: 400 });
         }
 
-        task.selected_tester.push(testerId);
+        await task.selected_tester.push(testerId);
         await task.save({ session }); // Use session for the save operation
 
         const taskExists = await Task.findOne({ type: "app", app: taskId }).session(session); // Use session for the query
@@ -65,8 +66,15 @@ export async function POST(req) {
                 await taskExists.save({ session }); // Use session for the save operation
             }
 
-            tester.taskHistory.push(taskExists._id);
-            await tester.save({ session }); // Use session for the save operation
+        const apptaskid = await Task.findOne({ type: "app", app: taskId }).session(session); // Use session for the query
+
+            await Tester.updateOne(
+                { _id: testerId, 'taskHistory.taskId': apptaskid },
+                { $set: { 'taskHistory.$.status': "pending" } },
+                {session}
+              );
+
+            
         }
 
         await session.commitTransaction(); // Commit the transaction if successful

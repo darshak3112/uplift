@@ -6,6 +6,7 @@ import Creator from "@/model/creatorModel";
 import Task from "@/model/taskModel";
 import App from "@/model/Task/apptaskModel";
 import { NextResponse } from "next/server";
+import Marketing from "@/model/Task/marketingtaskModel";
 
 export async function POST(req) {
     const session = await mongoose.startSession();
@@ -94,6 +95,19 @@ export async function POST(req) {
                             heading: app.heading,
                             instruction: app.instruction
                         });
+                    }
+                }
+                else if(task.type == 'marketing')
+                {
+                    const marketing = await Marketing.findById(task.app).session(session);
+                    if(marketing)
+                    {
+                        heading.push({
+                            id: marketing.id,
+                            type: "marketing",
+                            heading: marketing.heading,
+                            instruction: marketing.instruction
+                        })
                     }
                 }
             }
