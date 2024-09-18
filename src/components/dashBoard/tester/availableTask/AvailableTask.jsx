@@ -16,8 +16,8 @@ export default function AvailableTask() {
           testerId,
         });
         if (response.status === 200) {
-          const { surveys, youtube } = response.data;
-          dispatch(addAvailableTasks({ surveys, youtube }));
+          const { surveys, youtube, app } = response.data;
+          dispatch(addAvailableTasks({ surveys, youtube, app }));
         }
       }
     } catch (error) {

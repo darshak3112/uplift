@@ -13,7 +13,6 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 const fetchAnalyticsData = async (id, type) => {
   try {
     const response = await axios.post("/api/task/analytics", { id, type });
-    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching analytics data:", error);
@@ -58,7 +57,10 @@ const renderSurveyAnalytics = ({
   const barSeries = [{ name: "Frequency", data: counts }];
 
   return (
-    <div key={currentIndex} className="relative p-4 bg-white rounded-lg shadow-md">
+    <div
+      key={currentIndex}
+      className="relative p-4 bg-white rounded-lg shadow-md"
+    >
       <div className="absolute z-10 flex space-x-2 top-2 right-2">
         <button
           onClick={handlePrevious}

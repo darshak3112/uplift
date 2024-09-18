@@ -49,7 +49,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
+    <div className="w-full mx-2">
       <ComponentToRender />
     </div>
   );

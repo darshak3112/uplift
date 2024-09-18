@@ -90,7 +90,7 @@ export async function POST(req) {
                         app.end_date >= today &&
                         app.tester_no > app.selected_tester.length &&
                         app.country === tester.country &&
-                        !app.selected_tester.some((id) => id.equals(testerId)) &&
+                        !app.applied_testers.some((id) => id.equals(testerId)) &&
                         (app.tester_gender === "Both" || app.tester_gender === tester.gender)
                     ) {
                         return app;

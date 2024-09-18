@@ -11,18 +11,20 @@ import {
   Textarea,
 } from "flowbite-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import { addAppTask } from "@/_lib/store/features/creator/appTask/appTaskSlice";
+import axios from "axios";
 
 export default function TaskReviewForm({ setTaskCreated }) {
   const tester_gender = ["Male", "Female", "Both"];
 
   const dispatch = useAppDispatch();
-
+  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const creator = useAppSelector((state) => state.userInfo.id);
@@ -38,30 +40,49 @@ export default function TaskReviewForm({ setTaskCreated }) {
       tester_gender: "",
       country: "",
       instruction: "",
+      post_date: "",
+      end_date: "",
     },
   });
 
   const onSubmit = async (data, event) => {
     event.preventDefault();
     setErrorMessage(null);
-    setLoading(() => true);
+    setLoading(true);
 
-    let today = new Date();
-    today.setHours(0, 0, 0, 0); // Set today's date to midnight for accurate comparison
+    try {
+      let post_date = new Date(data.post_date);
+      let endDate = new Date(data.end_date);
+      let today = new Date();
+      today.setHours(0, 0, 0, 0); // Set today's date to midnight for accurate comparison
 
-    const post_date = today.toISOString(); // Convert to ISO string
-    const end_date = new Date(today);
-    end_date.setDate(today.getDate() + 15); // Assuming the end date is 15 days after the start
-    const endDateISO = end_date.toISOString(); // Convert to ISO string
+      if (post_date < today) {
+        setErrorMessage("Starting Date cannot be in the past");
+        setLoading(() => false);
+      } else if (post_date > endDate) {
+        setErrorMessage("Starting Date cannot be after Ending Date");
+        setLoading(() => false);
+      } else {
+        const formData = { creator, ...data };
 
-    const formData = { creator, post_date, end_date: endDateISO, ...data };
+        // Make the API call to add the task
+        const response = await axios.post("/api/task/app/addtask", formData);
 
-    setTimeout(() => {
-      setLoading(() => false);
-      dispatch(addAppTask(formData));
-      toast.success("Task created successfully....");
-      setTaskCreated(() => true);
-    }, 2000);
+        // Handle success
+        if (response.status === 200) {
+          toast.success("Task created successfully.");
+          setTaskCreated(true);
+          router.push("/dashboard?activeTab=history");
+        }
+      }
+    } catch (error) {
+      // Handle error
+      setErrorMessage("Failed to create task. Please try again.");
+      console.error(error);
+    } finally {
+      // Reset loading state
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,7 +91,7 @@ export default function TaskReviewForm({ setTaskCreated }) {
         <Card className="max-w-lg">
           <div className="flex flex-col items-center">
             <h5 className="text-2xl font-bold tracking-tight text-gray-900 ">
-              Task Review Form
+              App Review Form
             </h5>
           </div>
 
@@ -107,6 +128,7 @@ export default function TaskReviewForm({ setTaskCreated }) {
                   {...register("tester_no", {
                     required: "No. of testers is required",
                   })}
+                  min={20}
                   required
                 />
               </div>
@@ -184,7 +206,38 @@ export default function TaskReviewForm({ setTaskCreated }) {
                 ))}
               </Select>
             </div>
+            <div className="flex flex-col gap-4 md:gap-16 md:flex-row">
+              <div>
+                <div className="block mb-2">
+                  <Label htmlFor="post_date" value="Starting Date" />
+                </div>
 
+                <input
+                  type="date"
+                  name="post_date"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  {...register("post_date", {
+                    required: "Starting Date is required",
+                  })}
+                  required
+                />
+              </div>
+              <div>
+                <div className="block mb-2">
+                  <Label htmlFor="end_date" value="Ending Date" />
+                </div>
+
+                <input
+                  type="date"
+                  name="end_date"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  {...register("end_date", {
+                    required: "Ending Date is required",
+                  })}
+                  required
+                />
+              </div>
+            </div>
             <div>
               <div className="block mb-2">
                 <Label htmlFor="instruction" value="Instruction" />
