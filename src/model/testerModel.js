@@ -51,8 +51,15 @@ const testerSchema = new mongoose.Schema({
     google_auth_url: String,
     taskHistory: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Task'
+            taskId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Task',
+                required: true
+            },
+            status: {
+                type: String,
+                enum: ['applied', 'pending', 'rejected', 'success'],
+            }
         }],
     resetPasswordToken: String,
     resetPasswordExpires: Date,

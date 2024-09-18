@@ -67,8 +67,8 @@ export async function POST(req) {
         creatorExists.taskHistory.push({
             task: task._id,
         });
-        await creatorExists.save({ session });
-        
+
+        await creatorExists.save({session })
         await session.commitTransaction(); // Commit the transaction if successful
         session.endSession();
 
