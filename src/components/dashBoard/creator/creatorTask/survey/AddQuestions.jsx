@@ -4,12 +4,10 @@ import { Button, TextInput, Card } from "flowbite-react";
 import { useForm } from "react-hook-form";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import toast from "react-hot-toast";
-import {
-  addQuestion,
-  clearSurveyTask,
-} from "@/_lib/store/features/creator/surveyTask/surveyTaskSlice";
+import { addQuestion, clearSurveyTask } from "@/_lib/store/features/creator/surveyTask/surveyTaskSlice";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
 export const AddQuestions = () => {
   const [options, setOptions] = useState([
@@ -19,20 +17,15 @@ export const AddQuestions = () => {
     { text: "", color: "bg-yellow-500" },
   ]);
 
+  const [showModal, setShowModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(false);
+
   const router = useRouter();
   const [questionNo, setQuestionNo] = useState(1);
-  const noOfQuestions = useAppSelector(
-    (state) => state.surveyTask.noOfQuestions
-  );
-
+  const noOfQuestions = useAppSelector((state) => state.surveyTask.noOfQuestions);
   const dispatch = useAppDispatch();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
     defaultValues: {
       title: "",
       options: [],
@@ -42,23 +35,36 @@ export const AddQuestions = () => {
 
   let uploadSurveyTaskData = useAppSelector((state) => state.surveyTask);
 
-  const handleUploadTask = async () => {
+  const openModal = () => setShowModal(true);
+  const handleConfirm = async () => {
+    setShowModal(false);
+    setConfirmAction(true);
+    // Proceed with the task upload
+    await uploadTask();
+  };
+  const handleCancel = () => {
+    setShowModal(false);
+    setConfirmAction(false);
+  };
+
+  const uploadTask = async () => {
     try {
-      const response = await axios.post(
-        "/api/task/survey/addtask",
-        uploadSurveyTaskData
-      );
+      const response = await axios.post("/api/task/survey/addtask", uploadSurveyTaskData);
       if (response.status === 201) {
         dispatch(clearSurveyTask());
+        dispatch(clearHistoryUser());
         toast.success("Task uploaded successfully!");
         router.push("dashboard?activeTab=analytics");
       }
     } catch (error) {
-      console.error(
-        "Error uploading task:",
-        error.response ? error.response.data : error.message
-      );
+      console.error("Error uploading task:", error.response ? error.response.data : error.message);
       toast.error("Failed to upload task.");
+    }
+  };
+
+  const handleUploadTask = () => {
+    if (!confirmAction) {
+      openModal();
     }
   };
 
@@ -100,13 +106,31 @@ export const AddQuestions = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen px-4 pb-4">
       {questionNo > noOfQuestions ? (
-        <Button
-          color={"blue"}
-          onClick={handleUploadTask}
-          className="w-full mt-4 text-center "
-        >
-          UploadTask
-        </Button>
+        <>
+          <Button
+            color={"blue"}
+            onClick={handleUploadTask}
+            className="w-full mt-4 text-center"
+          >
+            Upload Task
+          </Button>
+          {showModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="p-6 bg-white rounded-lg shadow-lg w-80">
+                <h3 className="mb-4 text-lg font-bold">Confirm Upload</h3>
+                <p className="mb-4">Are you sure you want to upload the task?</p>
+                <div className="flex justify-end gap-4">
+                  <Button color="gray" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button color="blue" onClick={handleConfirm}>
+                    Confirm
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <>
           <h2 className="mb-4 text-2xl font-bold">
