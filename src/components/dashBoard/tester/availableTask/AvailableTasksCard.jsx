@@ -1,15 +1,34 @@
 import { useRouter } from "next/navigation";
 import { Button, Card } from "flowbite-react";
-import { useAppSelector } from "@/_lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
+import toast from "react-hot-toast";
+import { clearAvailableTask } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
+import axios from "axios";
 
 function TaskCard({ task, type }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const testerId = useAppSelector((state) => state.userInfo?.id);
 
-  const handleRedirect = () => {
-    // Assuming you want to redirect to a path that includes the task ID
-    router.push(
-      `/dashboard?activeTab=available-task&taskId=${task._id}&type=${type}`
-    );
+  const handleRedirect = async () => {
+    if (type === "app") {
+      const response = await axios.post("/api/task/app/apply", {
+        testerId,
+        taskId: task._id,
+      });
+      if (response.status === 200) {
+        dispatch(clearAvailableTask());
+        toast.success("Task submitted successfully!");
+        router.push("/dashboard?activeTab=applied-task");
+      } else {
+        toast.success(response?.data?.message);
+      }
+    } else {
+      // Redirect for other types of tasks
+      router.push(
+        `/dashboard?activeTab=available-task&taskId=${task._id}&type=${type}`
+      );
+    }
   };
 
   return (
@@ -59,6 +78,9 @@ export default function AvailableTasksCard() {
       ))}
       {availableTaskData?.youtube?.map((task) => (
         <TaskCard key={task._id} task={task} type={"youtube"} />
+      ))}
+      {availableTaskData?.app?.map((task) => (
+        <TaskCard key={task._id} task={task} type={"app"} />
       ))}
     </div>
   );

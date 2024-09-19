@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     surveys: [],
     youtube: [],
+    app: [],
     isTaskAvailable: false
 };
 
@@ -11,7 +12,7 @@ export const availableTaskSlice = createSlice({
     initialState,
     reducers: {
         addAvailableTasks: (state, action) => {
-            const { surveys, youtube } = action.payload;
+            const { surveys, youtube, app } = action.payload;
 
             // Filter unique surveys
             const existingSurveyIds = new Set(state.surveys.map(survey => survey._id));
@@ -23,8 +24,13 @@ export const availableTaskSlice = createSlice({
             const uniqueYouTubeTasks = youtube.filter(task => !existingYouTubeIds.has(task._id));
             state.youtube = [...state.youtube, ...uniqueYouTubeTasks];
 
+            // Filter unique App tasks
+            const existingAppIds = new Set(state.app.map(task => task._id));
+            const uniqueAppTasks = app.filter(task => !existingAppIds.has(task._id));
+            state.app = [...state.app, ...uniqueAppTasks];
+
             // Update isTaskAvailable flag
-            state.isTaskAvailable = state.surveys.length > 0 || state.youtube.length > 0;
+            state.isTaskAvailable = state.surveys.length > 0 || state.youtube.length > 0 || state.app.length > 0;
         },
         clearAvailableTask: () => {
             return initialState;
