@@ -1,84 +1,48 @@
-import { addResponseTasks } from "@/_lib/store/features/tester/responseTask/responseTaskSlice";
-import { useAppDispatch } from "@/_lib/store/hooks";
-import { Button, Card } from "flowbite-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+import React from 'react';
+import { Button } from 'flowbite-react';
 
-export default function SurveyCard({ setQuestionNo, questionNo, questions }) {
-  const { register, handleSubmit, reset } = useForm();
-  const dispatch = useAppDispatch();
-
-  const [options, setOptions] = useState([
-    { color: "bg-red-500", shape: "triangle" },
-    { color: "bg-blue-500", shape: "diamond" },
-    { color: "bg-yellow-500", shape: "circle" },
-    { color: "bg-green-500", shape: "square" },
-  ]);
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  const onSubmit = (data, event) => {
-    event.preventDefault();
-
-    if (selectedOption !== null) {
-      // Create a response object based on the selected option
-      const response = {
-        questionId: questionNo,
-        answer: questions[questionNo - 1].options[selectedOption],
-      };
-
-      // Dispatch the response to the Redux store
-      dispatch(addResponseTasks([response]));
-
-      // Move to the next question
-      setQuestionNo(questionNo + 1);
-      reset();
-      setSelectedOption(null); // Reset selected option
-    } else {
-      toast.error("Please select an option.");
-    }
-  };
-
-  const handleOptionClick = (index) => {
-    setSelectedOption(index);
-  };
-
-  useEffect(() => {
-    // Any additional side effects based on questionNo can be handled here
-  }, [questionNo]);
+const SurveyCard = ({ questionNo, questions, selectedOption, handleOptionClick, handleSubmit, isSubmitting, noOfQuestions }) => {
+  // Define vibrant colors for the options, similar to Kahoot
+  const kahootColors = ["bg-red-500", "bg-blue-500", "bg-green-500", "bg-yellow-500"];
 
   return (
-    <form method="POST" onSubmit={handleSubmit(onSubmit)}>
-      <Card className="w-full max-w-3xl">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-2xl font-bold">
-            {questions[questionNo - 1].title}
+    <div>
+      <h2 className="mb-6 text-2xl font-bold text-center text-gray-800">
+        Question {questionNo} of {noOfQuestions}
+      </h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-6">
+          <h3 className="mb-4 text-xl font-semibold text-gray-700">
+            {questions[questionNo - 1]?.title}
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {questions[questionNo - 1]?.options.map((option, index) => (
+              <Button
+                key={index}
+                // Apply vibrant Kahoot-style background colors
+                className={`w-full py-4 text-lg font-semibold text-white transition-all duration-300 ${
+                  selectedOption === index
+                    ? "border-4 border-white ring-4 ring-blue-300"
+                    : ""
+                } ${kahootColors[index % kahootColors.length]}`} // Cycle through the colors for options
+                onClick={() => handleOptionClick(index)}
+              >
+                {option}
+              </Button>
+            ))}
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {questions[questionNo - 1].options.map((option, index) => (
-            <Button
-              key={index}
-              className={`w-full py-8 text-xl font-bold ${
-                selectedOption === index ? "bg-opacity-70" : ""
-              } ${options[index].color} text-white`}
-              style={{ height: "100px" }}
-              // Handle option click
-              onClick={() => handleOptionClick(index)}
-            >
-              {option}
-            </Button>
-          ))}
         </div>
         <Button
           type="submit"
-          color={"blue"}
-          className="w-full mt-4 text-center"
+          color="blue"
+          className="w-full py-3 text-lg font-semibold transition-colors duration-300"
+          disabled={isSubmitting}
         >
-          Submit Answer
+          {questionNo === noOfQuestions ? "Submit Survey" : "Next Question"}
         </Button>
-      </Card>
-    </form>
+      </form>
+    </div>
   );
-}
+};
+
+export default SurveyCard;
