@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+"use client";
+import { useState, useEffect } from "react";
 import { CldUploadWidget, CldImage } from "next-cloudinary";
 import { toast } from "react-hot-toast";
 import { Button } from "flowbite-react";
@@ -12,6 +13,7 @@ import {
   clearYouTubeTask,
   removeThumbnail,
 } from "@/_lib/store/features/creator/youTubeTask/youTubeTaskSlice";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
 const uploadOptions = {
   cloudName: "dyuys2vzy",
@@ -38,9 +40,24 @@ export const YouTubeAddImages = () => {
   const uploadYouTubeTaskData = useAppSelector((state) => state.youTubeTask);
   const uploaded_thumbnails = youtube_thumbnails.length;
 
+  const [showModal, setShowModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(false);
+
   useEffect(() => {
     dispatch(clearThumbnails());
   }, [noOfThumbNails, dispatch]);
+
+  const openModal = () => setShowModal(true);
+  const handleConfirm = async () => {
+    setShowModal(false);
+    setConfirmAction(true);
+    // Proceed with the task upload
+    await uploadTask();
+  };
+  const handleCancel = () => {
+    setShowModal(false);
+    setConfirmAction(false);
+  };
 
   const handleSuccess = (result) => {
     const publicId = result.info.public_id;
@@ -92,7 +109,7 @@ export const YouTubeAddImages = () => {
     return hashHex;
   };
 
-  const handleUploadTask = async () => {
+  const uploadTask = async () => {
     try {
       const response = await axios.post(
         "/api/task/youtube/addtask",
@@ -101,6 +118,7 @@ export const YouTubeAddImages = () => {
 
       if (response.status === 201) {
         dispatch(clearYouTubeTask());
+        dispatch(clearHistoryUser());
         toast.success("Task uploaded successfully!");
         router.push("dashboard?activeTab=analytics");
       }
@@ -110,6 +128,12 @@ export const YouTubeAddImages = () => {
         error.response ? error.response.data : error.message
       );
       toast.error("Failed to upload task.");
+    }
+  };
+
+  const handleUploadTask = () => {
+    if (!confirmAction) {
+      openModal();
     }
   };
 
@@ -127,9 +151,9 @@ export const YouTubeAddImages = () => {
               {youtube_thumbnails[index] ? (
                 <>
                   <CldImage
-                    width={300} // Set a fixed width in pixels
-                    height={200} // Set a fixed height in pixels
-                    src={youtube_thumbnails[index].title} // Access the title property here
+                    width={300}
+                    height={200}
+                    src={youtube_thumbnails[index].title}
                     sizes="(min-width: 1280px) 300px, (min-width: 1024px) 250px, (min-width: 768px) 200px, (min-width: 640px) 150px, 100px"
                     alt={`Uploaded Image ${index + 1}`}
                     className="object-cover w-full rounded-lg"
@@ -154,7 +178,7 @@ export const YouTubeAddImages = () => {
                     <Button
                       type="button"
                       color="blue"
-                      onClick={open} // Changed to `open` directly
+                      onClick={open}
                       className="flex items-center justify-center w-full h-48 text-center sm:h-64"
                     >
                       Upload Image {index + 1}
@@ -169,6 +193,22 @@ export const YouTubeAddImages = () => {
           <Button className="m-auto" color={"blue"} onClick={handleUploadTask}>
             Upload Task
           </Button>
+        )}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="p-6 bg-white rounded-lg shadow-lg w-80">
+              <h3 className="mb-4 text-lg font-bold">Confirm Upload</h3>
+              <p className="mb-4">Are you sure you want to upload the task?</p>
+              <div className="flex justify-end gap-4">
+                <Button color="gray" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button color="blue" onClick={handleConfirm}>
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

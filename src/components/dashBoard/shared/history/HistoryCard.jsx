@@ -15,13 +15,13 @@ export function HistoryCard({ task }) {
 
   return (
     <Card
-      className={`relative overflow-hidden transition-transform duration-300 hover:shadow-2xl rounded-lg ${
-        activeTab === "analytics" ? "cursor-pointer hover:-translate-y-2" : ""
+      className={`relative overflow-hidden rounded-lg shadow-md transform transition duration-300 ${
+        activeTab === "analytics" ? "cursor-pointer hover:shadow-lg hover:-translate-y-2" : ""
       }`}
       onClick={handleClick}
     >
       {activeTab === "analytics" && (
-        <div className="absolute top-0 left-0 flex items-center justify-between w-full p-2 bg-gradient-to-r from-indigo-500 to-purple-500">
+        <div className="absolute top-0 left-0 flex items-center justify-between w-full p-3 text-white bg-gradient-to-r from-blue-500 to-indigo-600">
           <Badge color="info" size="sm">
             ID: {task?.id}
           </Badge>
@@ -30,11 +30,11 @@ export function HistoryCard({ task }) {
           </Badge>
         </div>
       )}
-      <div className={`p-6 ${activeTab === "analytics" ? "pt-10" : ""}`}>
-        <h5 className="mb-3 text-xl font-bold text-gray-900 dark:text-white line-clamp-2">
+      <div className={`p-6 space-y-4 ${activeTab === "analytics" ? "pt-12" : ""}`}>
+        <h5 className="text-xl font-semibold leading-tight text-gray-900 truncate dark:text-white">
           {task?.heading}
         </h5>
-        <p className="text-sm text-gray-700 dark:text-gray-400 line-clamp-3">
+        <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 line-clamp-3">
           {task?.instruction}
         </p>
       </div>

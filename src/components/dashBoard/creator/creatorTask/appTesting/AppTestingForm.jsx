@@ -9,6 +9,7 @@ import {
   HR,
   Select,
   Textarea,
+  Modal,
 } from "flowbite-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -17,8 +18,8 @@ import { useForm } from "react-hook-form";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
-import { addAppTask } from "@/_lib/store/features/creator/appTask/appTaskSlice";
 import axios from "axios";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
 export default function TaskReviewForm({ setTaskCreated }) {
   const tester_gender = ["Male", "Female", "Both"];
@@ -27,6 +28,9 @@ export default function TaskReviewForm({ setTaskCreated }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState(null);
+
   const creator = useAppSelector((state) => state.userInfo.id);
   const {
     register,
@@ -47,12 +51,18 @@ export default function TaskReviewForm({ setTaskCreated }) {
 
   const onSubmit = async (data, event) => {
     event.preventDefault();
+    setFormData(data);
+    setShowModal(true);
+  };
+
+  const handleConfirm = async () => {
+    setShowModal(false);
     setErrorMessage(null);
     setLoading(true);
 
     try {
-      let post_date = new Date(data.post_date);
-      let endDate = new Date(data.end_date);
+      let post_date = new Date(formData.post_date);
+      let endDate = new Date(formData.end_date);
       let today = new Date();
       today.setHours(0, 0, 0, 0); // Set today's date to midnight for accurate comparison
 
@@ -62,15 +72,21 @@ export default function TaskReviewForm({ setTaskCreated }) {
       } else if (post_date > endDate) {
         setErrorMessage("Starting Date cannot be after Ending Date");
         setLoading(() => false);
+      } else if ((endDate - post_date) / (1000 * 60 * 60 * 24) < 18) {
+        setErrorMessage(
+          "The difference between the Starting Date and Ending Date must be at least 14 days."
+        );
+        setLoading(() => false);
       } else {
-        const formData = { creator, ...data };
+        const dataToSend = { creator, ...formData };
 
         // Make the API call to add the task
-        const response = await axios.post("/api/task/app/addtask", formData);
+        const response = await axios.post("/api/task/app/addtask", dataToSend);
 
         // Handle success
         if (response.status === 200) {
           toast.success("Task created successfully.");
+          dispatch(clearHistoryUser());
           setTaskCreated(true);
           router.push("/dashboard?activeTab=history");
         }
@@ -85,12 +101,17 @@ export default function TaskReviewForm({ setTaskCreated }) {
     }
   };
 
+  const handleCancel = () => {
+    setShowModal(false);
+    setFormData(null);
+  };
+
   return (
     <section>
       <div className="flex justify-center gap-24 px-5 py-8 md:px-14">
         <Card className="max-w-lg">
           <div className="flex flex-col items-center">
-            <h5 className="text-2xl font-bold tracking-tight text-gray-900 ">
+            <h5 className="text-2xl font-bold tracking-tight text-gray-900">
               App Review Form
             </h5>
           </div>
@@ -266,7 +287,7 @@ export default function TaskReviewForm({ setTaskCreated }) {
           </form>
         </Card>
 
-        <div className="items-center justify-center hidden md:flex ">
+        <div className="items-center justify-center hidden md:flex">
           <Image
             className="w-[450px] h-[450px]"
             src={"/images/taskMan.png"}
@@ -276,6 +297,23 @@ export default function TaskReviewForm({ setTaskCreated }) {
           />
         </div>
       </div>
+
+      {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="p-6 bg-white rounded-lg shadow-lg w-80">
+              <h3 className="mb-4 text-lg font-bold">Confirm Upload</h3>
+              <p className="mb-4">Are you sure you want to upload the task?</p>
+              <div className="flex justify-end gap-4">
+                <Button color="gray" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button color="blue" onClick={handleConfirm}>
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
     </section>
   );
 }
