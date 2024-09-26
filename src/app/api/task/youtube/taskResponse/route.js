@@ -1,10 +1,7 @@
 import mongoose from "mongoose";
-import Tester from "@/model/testerModel";
-import Creator from "@/model/creatorModel";
 import { NextResponse } from "next/server";
-import Youtube from "@/model/Task/youtubetaskModel";
-import YoutubeResponse from "@/model/TaskResponse/youtubeTaskResponseModel";
-import Task from "@/model/taskModel";
+import { Tester, Task, YoutubeTask, YoutubeResponse } from "@/models";
+
 
 export async function POST(req) {
     try {
@@ -19,17 +16,17 @@ export async function POST(req) {
             return NextResponse.json({ message: 'Missing required fields', reqBody }, { status: 400 });
         }
 
-        const taskExists = await Youtube.findById(taskId);
-        if (!taskExists) {
-            return NextResponse.json({ message: 'YouTube task not found', taskId }, { status: 404 });
-        }
-
-        const task = await Task.findOne({ type: "youtube", youtube: taskId });
+        const task = await Task.findOne({ type: "YoutubeTask", _id: taskId });
         if (!task) {
             return NextResponse.json({ message: 'Associated task not found', taskId }, { status: 404 });
         }
 
-        if (taskExists.tester_no <= taskExists.tester_ids.length) {
+        const taskExists = await YoutubeTask.findById(task.specificTask);
+        if (!taskExists) {
+            return NextResponse.json({ message: 'YouTube task not found', taskId }, { status: 404 });
+        }
+
+        if (task.tester_no <= task.tester_ids.length) {
             task.task_flag = "Closed";
             await task.save();
             return NextResponse.json({ message: 'Task is already full', taskId }, { status: 400 });
@@ -40,6 +37,10 @@ export async function POST(req) {
             return NextResponse.json({ message: 'Tester not found', testerId }, { status: 404 });
         }
 
+        if(task.tester_ids.includes(testerId)) {
+            return NextResponse.json({ message: 'Tester already responded to this task', testerId }, { status: 400 });
+        }
+        
         const youtubeResponse = new YoutubeResponse({
             taskId: new mongoose.Types.ObjectId(taskId),
             testerId: new mongoose.Types.ObjectId(testerId),
@@ -47,13 +48,17 @@ export async function POST(req) {
         });
 
         const result = await youtubeResponse.save();
-        taskExists.tester_ids.push(testerId);
-        await taskExists.save();
+        task.tester_ids.push(testerId);
+        await task.save();
 
-        testerExists.taskHistory.push(task._id);
+        testerExists.taskHistory.push({
+            taskId: taskId,
+            status: "success"
+            
+        });
         await testerExists.save();
 
-        if (taskExists.tester_no === taskExists.tester_ids.length) {
+        if (task.tester_no === task.tester_ids.length) {
             task.task_flag = "Closed";
             await task.save();
         }

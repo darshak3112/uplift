@@ -1,128 +1,89 @@
 import mongoose from "mongoose";
-import Survey from "@/model/Task/surveytaskModel";
-import Youtube from "@/model/Task/youtubetaskModel";
-import Tester from "@/model/testerModel";
-import Creator from "@/model/creatorModel";
-import Task from "@/model/taskModel";
-import App from "@/model/Task/apptaskModel";
+import { Tester, Creator, Task } from "@/models";
 import { NextResponse } from "next/server";
-import Marketing from "@/model/Task/marketingtaskModel";
 
 export async function POST(req) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    try {
-        const reqBody = await req.json();
+  try {
+    const reqBody = await req.json();
 
-        if (!reqBody) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: 'Invalid request body', reqBody }, { status: 400 });
-        }
-
-        const { id, role } = reqBody;
-
-        if (!id || !role) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: 'Invalid request body', reqBody }, { status: 400 });
-        }
-
-        if (role !== 'tester' && role !== 'creator') {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: 'Invalid role', role }, { status: 400 });
-        }
-
-        let history = [];
-        const heading = [];
-
-        if (role === 'tester') {
-            const tester = await Tester.findById(id).session(session);
-            if (!tester) {
-                await session.abortTransaction();
-                session.endSession();
-                return NextResponse.json({ message: 'Tester not found' }, { status: 404 });
-            }
-
-            history = tester.taskHistory;
-        } else {
-            const creator = await Creator.findById(id).session(session);
-            if (!creator) {
-                await session.abortTransaction();
-                session.endSession();
-                return NextResponse.json({ message: 'Creator not found' }, { status: 404 });
-            }
-
-            history = creator.taskHistory;
-        }
-
-        for (const taskId of history) {
-            let task;
-            if (role === 'tester') {
-                task = await Task.findById(taskId).session(session);
-            } else {
-                task = await Task.findById(taskId.task).session(session);
-            }
-            if (task) {
-                if (task.type === 'survey') {
-                    const survey = await Survey.findById(task.survey).session(session);
-                    if (survey) {
-                        heading.push({
-                            id: survey.id,
-                            type: "survey",
-                            heading: survey.heading,
-                            instruction: survey.instruction
-                        });
-                    }
-                } else if (task.type === 'youtube') {
-                    const youtube = await Youtube.findById(task.youtube).session(session);
-                    if (youtube) {
-                        heading.push({
-                            id: youtube.id,
-                            type: "youtube",
-                            heading: youtube.heading,
-                            instruction: youtube.instruction
-                        });
-                    }
-                } else if (task.type === 'app') {
-                    const app = await App.findById(task.app).session(session);
-                    if (app) {
-                        heading.push({
-                            id: app.id,
-                            type: "app",
-                            heading: app.heading,
-                            instruction: app.instruction
-                        });
-                    }
-                }
-                else if(task.type == 'marketing')
-                {
-                    const marketing = await Marketing.findById(task.app).session(session);
-                    if(marketing)
-                    {
-                        heading.push({
-                            id: marketing.id,
-                            type: "marketing",
-                            heading: marketing.heading,
-                            instruction: marketing.instruction
-                        })
-                    }
-                }
-            }
-        }
-
-        heading.reverse();
-
-        await session.commitTransaction();
-        session.endSession();
-
-        return NextResponse.json({ message: 'History', history: heading }, { status: 200 });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.error('Error in POST request:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    if (!reqBody || !reqBody.id || !reqBody.role) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { message: "Invalid request. Missing id or role." },
+        { status: 400 }
+      );
     }
+
+    const { id, role } = reqBody;
+
+    if (role !== "tester" && role !== "creator") {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json({ message: "Invalid role" }, { status: 400 });
+    }
+
+    let user;
+    if (role === "tester") {
+      user = await Tester.findById(id).session(session);
+    } else {
+      user = await Creator.findById(id).session(session);
+    }
+
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        {
+          message: `${role.charAt(0).toUpperCase() + role.slice(1)} not found`,
+        },
+        { status: 404 }
+      );
+    }
+
+    const taskHistory = await Promise.all(
+      user.taskHistory.map(async (historyItem) => {
+        const task = await Task.findById(
+          role === "tester" ? historyItem.taskId : historyItem.task
+        ).session(session);
+
+        if (!task) {
+          return null;
+        }
+
+        return {
+          id: task._id,
+          type: task.type,
+          heading: task.heading,
+          instruction: task.instruction,
+          status: role === "tester" ? historyItem.status : task.task_flag,
+          date: role === "tester" ? historyItem.appliedAt : task.post_date,
+        };
+      })
+    );
+
+    const filteredTaskHistory = taskHistory.filter((item) => item !== null);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return NextResponse.json(
+      {
+        message: "Task History Retrieved Successfully",
+        history: filteredTaskHistory.reverse(),
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error in POST request:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
