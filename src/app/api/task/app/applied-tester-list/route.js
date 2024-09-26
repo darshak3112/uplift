@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import App from "@/model/Task/apptaskModel";
-import Tester from "@/model/testerModel";
+import { Task, AppTask , Creator , Tester } from "@/models";
 import mongoose from "mongoose";
 
 export async function POST(req) {
@@ -15,21 +14,52 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    const { taskId } = reqBody;
+    const { taskId , creatorId } = reqBody;
     if (!taskId) {
       return NextResponse.json(
         { message: "TaskId is required", reqBody },
         { status: 400 }
       );
     }
-    const task = await App.findById(taskId).session(session);
+    if (!creatorId) {
+      return NextResponse.json(
+        { message: "CreatorId is required", reqBody },
+        { status: 400 }
+      )
+    }
+
+    const creator = await Creator.findById(creatorId).session(session);
+    if (!creator) {
+      return NextResponse.json(
+        { message: "Creator not found", creatorId },
+        { status: 404 }
+      );
+    }
+
+    const task = await Task.findById(taskId).session(session);
     if (!task) {
       return NextResponse.json(
         { message: "Task not found", taskId },
         { status: 404 }
       );
     }
-    const testers = task.applied_testers;
+
+    if (task.creator.toString() !== creatorId) {
+      return NextResponse.json(
+        { message: "Creator not authorized to view this task" },
+        { status: 401 }
+      );
+    }
+
+    const specificTask = await AppTask.findById(task.specificTask).session(session);
+    if (!specificTask) {
+      return NextResponse.json(
+        { message: "Specific task not found", taskId },
+        { status: 404 }
+      );
+    }
+
+    const testers = specificTask.applied_testers;
     const testerDetails = [];
     for (const testerId of testers) {
       const tester = await Tester.findById(testerId).session(session);

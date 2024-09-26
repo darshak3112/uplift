@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Tester from "@/model/testerModel";
-import Creator from "@/model/creatorModel";
+import Creator from "@/models/user/creatorModel";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {

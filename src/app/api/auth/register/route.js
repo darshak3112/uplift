@@ -1,7 +1,7 @@
 import { dbConnect } from '@/_lib/db';
-import Tester from '@/model/testerModel';
-import Creator from '@/model/creatorModel';
-import { NextRequest, NextResponse } from "next/server";
+import Tester from '@/models/user/testerModel';
+import Creator from '@/models/user/creatorModel';
+import { NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { z } from 'zod';
 import mongoose from 'mongoose';
@@ -15,15 +15,15 @@ const userSchema = z.object({
     mobileNo: z.string().min(10),
     gender: z.enum(['Male', 'Female', 'Others']),
     password: z.string().min(6),
-    dob: z.string().date(),
+    dob: z.string(),
     country: z.string().min(2),
     role: z.enum(['tester', 'creator']),
     pincode: z.string().optional(),
 });
 
 export async function POST(req) {
-    const session = await mongoose.startSession();  // Start a session
-    session.startTransaction();  // Begin a transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
         const reqBody = await req.json();
         const parsedData = userSchema.safeParse(reqBody);
@@ -40,14 +40,10 @@ export async function POST(req) {
             existingUserByEmail = await Tester.findOne({ email }).session(session);
             existingUserByMobile = await Tester.findOne({ mobileNo }).session(session);
 
-            if (existingUserByEmail) {
+            if (existingUserByEmail || existingUserByMobile) {
                 await session.abortTransaction();
                 session.endSession();
-                return NextResponse.json({ message: "Email already registered." }, { status: 409 });
-            } else if (existingUserByMobile) {
-                await session.abortTransaction();
-                session.endSession();
-                return NextResponse.json({ message: "Mobile number already registered." }, { status: 409 });
+                return NextResponse.json({ message: "Email or mobile number already registered." }, { status: 409 });
             } else {
                 const salt = await bcryptjs.genSalt(10);
                 const hashedPassword = await bcryptjs.hash(password, salt);
@@ -62,7 +58,7 @@ export async function POST(req) {
                     dob: DOB,
                     country
                 });
-                await newTester.save({ session });  // Save within the session
+                await newTester.save({ session });
                 await session.commitTransaction();
                 session.endSession();
                 return NextResponse.json({ message: "Tester registered successfully" }, { status: 201 });
@@ -71,14 +67,10 @@ export async function POST(req) {
             existingUserByEmail = await Creator.findOne({ email }).session(session);
             existingUserByMobile = await Creator.findOne({ mobileNo }).session(session);
 
-            if (existingUserByEmail) {
+            if (existingUserByEmail || existingUserByMobile) {
                 await session.abortTransaction();
                 session.endSession();
-                return NextResponse.json({ message: "Email already registered." }, { status: 409 });
-            } else if (existingUserByMobile) {
-                await session.abortTransaction();
-                session.endSession();
-                return NextResponse.json({ message: "Mobile number already registered." }, { status: 409 });
+                return NextResponse.json({ message: "Email or mobile number already registered." }, { status: 409 });
             } else {
                 const salt = await bcryptjs.genSalt(10);
                 const hashedPassword = await bcryptjs.hash(password, salt);
@@ -92,14 +84,14 @@ export async function POST(req) {
                     dob: DOB,
                     country
                 });
-                await newCreator.save({ session });  // Save within the session
+                await newCreator.save({ session });
                 await session.commitTransaction();
                 session.endSession();
                 return NextResponse.json({ message: "Creator registered successfully" }, { status: 201 });
             }
         }
     } catch (err) {
-        await session.abortTransaction();  // Rollback on error
+        await session.abortTransaction();
         session.endSession();
         console.error(err);
         return NextResponse.json({ message: "An error occurred", error: err.message }, { status: 500 });

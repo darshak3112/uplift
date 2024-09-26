@@ -1,93 +1,141 @@
-import mongoose from 'mongoose';
-import App from "@/model/Task/apptaskModel";
-import AppResponse from "@/model/TaskResponse/appTaskResponseModel";
-import Tester from "@/model/testerModel";
+import mongoose from "mongoose";
+import { AppResponse, Task, Tester, AppTask } from "@/models";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
-    try {
-        const reqBody = await req.json();
+  let session;
+  let retries = 3; // Retry limit for transient errors
 
-        if (!reqBody) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: "Invalid request Body", reqBody }, { status: 400 });
+  try {
+    const { testerId, text, taskId } = await req.json();
+
+    if (!testerId || !text || !taskId) {
+      return NextResponse.json(
+        { message: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    // Retry logic for handling transient transaction errors
+    while (retries > 0) {
+      try {
+        // Start the session and transaction
+        session = await mongoose.startSession();
+        session.startTransaction();
+
+        const [task, tester] = await Promise.all([
+          Task.findById(taskId).session(session),
+          Tester.findById(testerId).session(session),
+        ]);
+
+        if (!task) {
+          await session.abortTransaction();
+          return NextResponse.json(
+            { message: "Task not found" },
+            { status: 404 }
+          );
         }
 
-        const { testerId, response, taskId } = reqBody;
-
-        if (!testerId || !response || !taskId) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: "All fields are required", reqBody }, { status: 400 });
+        if (!tester) {
+          await session.abortTransaction();
+          return NextResponse.json(
+            { message: "Tester not found" },
+            { status: 404 }
+          );
         }
 
-        const taskExists = await App.findById(taskId).session(session);
-        if (!taskExists) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: "Task not found", taskId }, { status: 404 });
+        const appTask = await AppTask.findById(task.specificTask).session(
+          session
+        );
+
+        if (!appTask) {
+          await session.abortTransaction();
+          return NextResponse.json(
+            { message: "App task not found" },
+            { status: 404 }
+          );
         }
 
-        const testerExists = await Tester.findById(testerId).session(session);
-        if (!testerExists) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: "Tester not found", testerId }, { status: 404 });
+        const isTesterSelected = appTask.selected_testers.some(
+          (selected) => selected._id.toString() === testerId
+        );
+
+        if (!isTesterSelected) {
+          await session.abortTransaction();
+          return NextResponse.json(
+            { message: "You are not selected for testing this app" },
+            { status: 403 }
+          );
         }
 
-        // Ensure selected_tester is defined and is an array
-        if (!Array.isArray(taskExists.selected_tester) || !taskExists.selected_tester.includes(testerId)) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({
-                message: "You are not selected for testing this app, so you cannot send a response",
-                testerId
-            }, { status: 403 });
-        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        const newResponse = {
-            text: response,
-            date: new Date()
-        };
-
-        // Check if a response for the same date already exists
         const existingResponse = await AppResponse.findOne({
-            taskId,
-            testerId,
-            "response.date": { $gte: new Date(new Date().setHours(0, 0, 0, 0)), $lt: new Date(new Date().setHours(24, 0, 0, 0)) }
+          taskId,
+          testerId,
+          "responses.date": { $gte: today },
         }).session(session);
 
         if (existingResponse) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({
-                message: "A response for today has already been added.",
-                existingResponse
-            }, { status: 400 });
+          await session.abortTransaction();
+          return NextResponse.json(
+            { message: "A response for today has already been added" },
+            { status: 409 }
+          );
         }
 
-        // Add or update the response for the tester
+        const newResponse = {
+          text,
+          date: new Date(),
+        };
+
         const appResponse = await AppResponse.findOneAndUpdate(
-            { taskId, testerId },
-            { $push: { response: newResponse } },
-            { new: true, upsert: true, session } // Create a new document if it doesn't exist
+          { taskId, testerId },
+          { $push: { responses: newResponse } },
+          { new: true, upsert: true, session }
         );
 
-        // Save the response document
-        await appResponse.save({ session });
-
         await session.commitTransaction();
-        session.endSession();
 
-        return NextResponse.json({ message: "Response added successfully", result: appResponse }, { status: 200 });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        // Return an error response in case something goes wrong
-        return NextResponse.json({ message: "An error occurred", error: error.message }, { status: 500 });
+        return NextResponse.json(
+          { message: "Response added successfully", result: appResponse },
+          { status: 201 }
+        );
+      } catch (error) {
+        if (session && session.inTransaction()) {
+          await session.abortTransaction();
+        }
+
+        if (
+          error.errorLabels &&
+          error.errorLabels.includes("TransientTransactionError")
+        ) {
+          retries -= 1; // Decrement retry count on transient error
+        } else {
+          console.error("Error in transaction:", error);
+          return NextResponse.json(
+            { message: "Internal Server Error" },
+            { status: 500 }
+          );
+        }
+      } finally {
+        if (session) {
+          await session.endSession();
+        }
+      }
     }
+
+    // If retries exhausted
+    return NextResponse.json(
+      { message: "Failed after multiple retries" },
+      { status: 500 }
+    );
+  } catch (error) {
+    console.error("Error in POST request:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

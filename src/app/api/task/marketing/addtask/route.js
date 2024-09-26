@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import Marketing from "@/model/Task/marketingtaskModel";
-import Creator from "@/model/creatorModel";
+import Marketing from "@/models/task/marketingtaskModel";
+import Creator from "@/models/user/creatorModel";
 import { NextResponse } from "next/server";
-import Task from "@/model/taskModel";
+import Task from "@/models/task/taskModel";
 
 export async function POST(req){
     const session = await mongoose.startSession();

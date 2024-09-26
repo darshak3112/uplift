@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import Task from "@/model/taskModel";
+import Task from "@/models/task/taskModel";
 import Tester from "@/model/testerModel";
-import App from "@/model/Task/apptaskModel";
-import Marketing from "@/model/Task/marketingtaskModel";
+import App from "@/models/task/apptaskModel";
+import Marketing from "@/models/task/marketingtaskModel";
 import { NextResponse } from "next/server";
 
 export async function POST(req){
