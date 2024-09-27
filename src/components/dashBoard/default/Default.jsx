@@ -3,6 +3,7 @@ import { useAppSelector } from "@/_lib/store/hooks";
 import { HiChartPie } from "react-icons/hi";
 import { FaTasks, FaHistory } from "react-icons/fa";
 import { IoWallet, IoTicket } from "react-icons/io5";
+import { MdReviews } from "react-icons/md";
 import { CgProfile } from "react-icons/cg";
 import Link from "next/link";
 
@@ -79,9 +80,9 @@ export default function DefaultComponent() {
             description: "Manage tasks that are currently ongoing.",
           },
           {
-            href: "/dashboard?activeTab=result-creator",
-            label: "Results",
-            icon: HiChartPie,
+            href: "/dashboard?activeTab=review-creator",
+            label: "Review",
+            icon: MdReviews,
             description: "View results related to the tasks you have created.",
           },
         ]

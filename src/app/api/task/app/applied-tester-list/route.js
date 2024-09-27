@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Task, AppTask , Creator , Tester } from "@/models";
+import { Task, AppTask, Creator, Tester } from "@/models";
 import mongoose from "mongoose";
 
 export async function POST(req) {
@@ -14,7 +14,7 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    const { taskId , creatorId } = reqBody;
+    const { taskId, creatorId } = reqBody;
     if (!taskId) {
       return NextResponse.json(
         { message: "TaskId is required", reqBody },
@@ -64,13 +64,14 @@ export async function POST(req) {
     for (const testerId of testers) {
       const tester = await Tester.findById(testerId).session(session);
       const today = new Date();
-        const tester_dob = new Date(tester.dob);
-        const diffInMs = today - tester_dob;
-        const tester_age = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 365.25));
+      const tester_dob = new Date(tester.dob);
+      const diffInMs = today - tester_dob;
+      const tester_age = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 365.25));
       const data = {
-        "name" : tester.firstName +' ' + tester.lastName,
-        "email" : tester.email,
-        "age" : tester_age,
+        "name": tester.firstName + ' ' + tester.lastName,
+        "email": tester.email,
+        "age": tester_age,
+        "testerId": tester._id
       }
       testerDetails.push(data);
     }

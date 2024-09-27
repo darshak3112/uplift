@@ -128,13 +128,13 @@ async function processSurveyAnalytics(task, responseModel, session) {
       answers:
         answer_type === "multiple_choice"
           ? options.map((option) => ({
-              option,
-              count: results[questionId][option] || 0,
-            }))
+            option,
+            count: results[questionId][option] || 0,
+          }))
           : Object.entries(results[questionId]).map(([answer, count]) => ({
-              answer,
-              count,
-            })),
+            answer,
+            count,
+          })),
     })
   );
 }
@@ -145,8 +145,8 @@ async function processYoutubeAnalytics(task, responseModel, session) {
     .session(session);
   const results = {};
   const options = task.specificTask.youtube_thumbnails.map(
-      (thumbnail) => thumbnail.title
-    );
+    (thumbnail) => thumbnail.title
+  );
 
   options.forEach((option) => {
     results[option] = 0;
@@ -179,8 +179,11 @@ async function processAppAnalytics(task, responseModel, session) {
     response.responses.map((r) => r.text)
   );
 
+  console.log();
+
   return {
     totalResponses: taskResponses.length,
+    textResponses,
     // Add more app-specific analytics here
   };
 }

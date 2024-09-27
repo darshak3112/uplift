@@ -9,7 +9,6 @@ import Skeleton from "@/components/shared/skeleton/Skeleton";
 import { CldImage } from "next-cloudinary";
 import { Modal } from "flowbite-react";
 import { FaChevronLeft } from "react-icons/fa";
-import { IoIosCloseCircle } from "react-icons/io";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 

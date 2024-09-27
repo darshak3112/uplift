@@ -78,7 +78,6 @@ export async function POST(req) {
         { status: 404 }
       );
     }
-
     if (task.creator.toString() !== creatorId) {
       await session.abortTransaction(); // Rollback if creatorId is wrong
       session.endSession();

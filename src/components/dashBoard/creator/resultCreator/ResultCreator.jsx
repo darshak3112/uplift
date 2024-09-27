@@ -1,3 +1,9 @@
+import HistoryUser from "../../shared/history/History";
+
 export default function ResultCreator() {
-  return <div>Result creator Component</div>;
+  return (
+    <div>
+      <HistoryUser />
+    </div>
+  );
 }
