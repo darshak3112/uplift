@@ -60,17 +60,18 @@ export async function POST(req) {
     });
 
     const savedResponse = await surveyResponse.save({ session });
+    console.log(task.tester_ids);
 
     // Update task's tester_ids
     // Update task's tester_ids with testerId and status if schema allows objects
-    if (!task.tester_ids.some((entry) => entry.testerId.equals(tester._id))) {
+    if (!task.tester_ids.some((entry) => entry.equals(testerId))) {
       task.tester_ids.push(testerId);
       await task.save({ session });
     }
 
     // Update tester's taskHistory
     const existingTaskEntry = tester.taskHistory.find((entry) =>
-      entry.taskId.equals(task._id)
+      entry.taskId.equals(taskId)
     );
 
     if (existingTaskEntry) {

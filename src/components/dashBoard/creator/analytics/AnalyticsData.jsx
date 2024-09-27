@@ -9,12 +9,14 @@ import Skeleton from "@/components/shared/skeleton/Skeleton";
 import { CldImage } from "next-cloudinary";
 import { Modal } from "flowbite-react";
 import { FaChevronLeft } from "react-icons/fa";
+import { IoIosCloseCircle } from "react-icons/io";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const fetchAnalyticsData = async (id, type) => {
   try {
     const response = await axios.post("/api/task/analytics", { id, type });
+    console.log("response", response);
     return response.data;
   } catch (error) {
     console.error("Error fetching analytics data:", error);
@@ -23,38 +25,221 @@ const fetchAnalyticsData = async (id, type) => {
   }
 };
 
-const renderSurveyAnalytics = ({ task, handleBack, currentIndex, handlePrevious, handleNext }) => {
-  // ... (keep existing survey analytics rendering logic)
-};
+const renderSurveyAnalytics = ({
+  task,
+  handleBack,
+  currentIndex,
+  handlePrevious,
+  handleNext,
+}) => {
+  const answer = task.answers[currentIndex];
+  const options = Object.keys(answer.answers);
+  const optiontoprint = Object.values(answer.answers).map((option) => option.option);
+  console.log("optionstoprint", optiontoprint);
+  const counts = options.map((option) => answer.answers[option].count);
+  const barOptions = {
+    chart: { type: "bar", height: 350 },
+    xaxis: {
+      categories: optiontoprint,
+      title: { text: "Options" },
+      labels: { show: false },
+    },
+    yaxis: {
+      title: { text: "Frequency of Answers" },
+    },
+    title: {
+      text: `Question ${currentIndex + 1}: ${answer.question}`,
+      align: "left",
+    },
+    plotOptions: {
+      bar: {
+        distributed: true,
+        horizontal: false,
+      },
+    },
+    colors: ["#008FFB", "#00E396", "#FEB019", "#FF4560"],
+  };
 
-const renderYoutubeAnalytics = ({ task, handleBack, selectedImage, setSelectedImage }) => {
-  // ... (keep existing YouTube analytics rendering logic)
-};
+  const barSeries = [{ name: "Frequency", data: counts }];
 
-const renderAppTestingAnalytics = ({ task, handleBack }) => {
-  // Implement app testing analytics rendering logic here
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="mb-4 text-2xl font-bold">App Testing Analytics</h2>
-      {/* Add appropriate charts or data visualization for app testing */}
-      <p>App testing analytics visualization to be implemented.</p>
-      <button onClick={handleBack} className="mt-4 text-blue-600 hover:underline">
+    <div className="relative p-6 bg-white rounded-lg shadow-lg">
+      <button
+        className="flex items-center text-blue-600 transition duration-300 hover:text-blue-800"
+        onClick={handleBack}
+      >
+        <FaChevronLeft className="w-5 h-5 mr-2" />
         Back to Analytics Selection
       </button>
+      <div className="absolute z-10 flex space-x-2 top-4 right-4">
+        <button
+          onClick={handlePrevious}
+          className="px-4 py-2 text-white transition-colors bg-blue-600 rounded hover:bg-blue-700"
+        >
+          Previous
+        </button>
+        <button
+          onClick={handleNext}
+          className="px-4 py-2 text-white transition-colors bg-blue-600 rounded hover:bg-blue-700"
+        >
+          Next
+        </button>
+      </div>
+      <Chart
+        options={barOptions}
+        series={barSeries}
+        type="bar"
+        height={500}
+        width="100%"
+      />
     </div>
   );
 };
 
-const renderProductReviewAnalytics = ({ task, handleBack }) => {
-  // Implement product review analytics rendering logic here
+const renderYoutubeAnalytics = ({
+  task,
+  handleBack,
+  selectedImage,
+  setSelectedImage,
+}) => {
+  const youtubeOptions = task.answers.answers.map((answer) => answer.option);
+  const youtubeCounts = task.answers.answers.map((answer) => answer.count);
+
+  const colors = [
+    "#008FFB",
+    "#00E396",
+    "#FEB019",
+    "#FF4560",
+    "#775DD0",
+    "#546E7A",
+    "#26a69a",
+    "#D10CE8",
+  ];
+
+  const barOptions = {
+    chart: { type: "bar", height: 350 },
+    xaxis: {
+      categories: youtubeOptions,
+      labels: { show: false },
+    },
+    yaxis: {
+      title: { text: "Number of Votes" },
+    },
+    title: {
+      text: "Bar Chart: Voting Results",
+      align: "left",
+    },
+    plotOptions: {
+      bar: {
+        distributed: true,
+        horizontal: false,
+      },
+    },
+    colors: colors,
+    legend: { show: false },
+  };
+
+  const pieOptions = {
+    chart: { type: "pie", height: 350 },
+    labels: youtubeOptions,
+    title: {
+      text: "Pie Chart: Vote Distribution",
+      align: "left",
+    },
+    colors: colors,
+    legend: { show: false },
+  };
+
+  const barSeries = [{ name: "Votes", data: youtubeCounts }];
+  const pieSeries = youtubeCounts;
+
+  const handleKeyPress = (event, option) => {
+    if (event.key === "Enter" || event.key === " ") {
+      setSelectedImage(option);
+    }
+  };
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="mb-4 text-2xl font-bold">Product Review Analytics</h2>
-      {/* Add appropriate charts or data visualization for product reviews */}
-      <p>Product review analytics visualization to be implemented.</p>
-      <button onClick={handleBack} className="mt-4 text-blue-600 hover:underline">
-        Back to Analytics Selection
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">{task.heading}</h2>
+        <button
+          className="flex items-center text-blue-600 transition duration-300 hover:text-blue-800"
+          onClick={handleBack}
+        >
+          <FaChevronLeft className="w-5 h-5 mr-2" />
+          Back to Analytics Selection
+        </button>
+      </div>
+      <p className="mb-6 text-gray-600">{task.instruction}</p>
+
+      <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
+        {youtubeOptions.map((option, index) => (
+          <div key={index} className="relative">
+            <div
+              className="cursor-pointer"
+              onClick={() => setSelectedImage(option)}
+              onKeyPress={(e) => handleKeyPress(e, option)}
+              tabIndex={0}
+              role="button"
+              aria-label={`View enlarged thumbnail ${index + 1}`}
+              style={{ border: `8px solid ${colors[index % colors.length]}` }}
+            >
+              <CldImage
+                src={option}
+                width={300}
+                height={200}
+                alt={`Thumbnail ${index + 1}`}
+                className="object-cover w-full h-48 rounded-lg"
+              />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-2 text-white bg-black bg-opacity-50 rounded-b-lg">
+              {youtubeCounts[index]} votes
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2">
+        <Chart
+          options={barOptions}
+          series={barSeries}
+          type="bar"
+          height={350}
+        />
+        <Chart
+          options={pieOptions}
+          series={pieSeries}
+          type="pie"
+          height={350}
+        />
+      </div>
+
+      <Modal
+        show={selectedImage !== null}
+        onClose={() => setSelectedImage(null)}
+        size="xl"
+      >
+        <Modal.Header>
+          <h3>Enlarged Image</h3>
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+            aria-label="Close modal"
+          />
+        </Modal.Header>
+        <Modal.Body>
+          {selectedImage && (
+            <CldImage
+              src={selectedImage}
+              width={800}
+              height={600}
+              alt="Enlarged thumbnail"
+              className="object-contain w-full h-full"
+            />
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
@@ -79,7 +264,7 @@ const AnalyticsData = () => {
         if (!existingData) {
           const data = await fetchAnalyticsData(id, type);
           if (data?.task) {
-            dispatch(setAnalyticsData([...analyticsData, { task: data.task }]));
+            dispatch(setAnalyticsData([{ task: data.task }]));
           }
         }
         setIsLoading(false);
@@ -93,18 +278,10 @@ const AnalyticsData = () => {
 
   const currentData = analyticsData.find((item) => item.task.id === id);
 
-  if (!currentData) {
-    return (
-      <div className="container px-4 py-8 mx-auto text-center">
-        <p className="text-xl text-gray-600">No analytics data available for this task.</p>
-        <button onClick={() => router.back()} className="mt-4 text-blue-600 hover:underline">
-          Back to Analytics Selection
-        </button>
-      </div>
-    );
-  }
+  if (!currentData)
+    return <p className="text-center text-gray-600">No data available</p>;
 
-  const totalCharts = currentData.task.answers?.length || 0;
+  const totalCharts = currentData.task.answers.length;
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % totalCharts);
@@ -118,51 +295,25 @@ const AnalyticsData = () => {
     router.back();
   };
 
-  const renderAnalytics = () => {
-    switch (currentData.task.type) {
-      case "survey":
-        return renderSurveyAnalytics({
-          task: currentData.task,
-          currentIndex,
-          handlePrevious,
-          handleNext,
-          handleBack,
-        });
-      case "youtube":
-        return renderYoutubeAnalytics({
-          task: currentData.task,
-          handleBack,
-          selectedImage,
-          setSelectedImage,
-        });
-      case "app_testing":
-        return renderAppTestingAnalytics({
-          task: currentData.task,
-          handleBack,
-        });
-      case "product_review":
-        return renderProductReviewAnalytics({
-          task: currentData.task,
-          handleBack,
-        });
-      default:
-        return (
-          <div className="p-6 bg-white rounded-lg shadow-lg">
-            <p className="text-xl text-gray-600">Unsupported task type: {currentData.task.type}</p>
-            <button onClick={handleBack} className="mt-4 text-blue-600 hover:underline">
-              Back to Analytics Selection
-            </button>
-          </div>
-        );
-    }
-  };
-
   return (
     <div className="container px-4 py-8 mx-auto">
       <h1 className="mb-8 text-3xl font-bold text-center text-gray-800">
         Analytics Data
       </h1>
-      {renderAnalytics()}
+      {currentData.task.type === "SurveyTask"
+        ? renderSurveyAnalytics({
+            task: currentData.task,
+            currentIndex,
+            handlePrevious,
+            handleNext,
+            handleBack,
+          })
+        : renderYoutubeAnalytics({
+            task: currentData.task,
+            handleBack,
+            selectedImage,
+            setSelectedImage,
+          })}
     </div>
   );
 };
