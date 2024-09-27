@@ -29,7 +29,6 @@ const AppResponse = () => {
 
       if (result.status === 200) {
         setLoading(false);
-        router.push("/dashboard?activeTab=available-task");
       }
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -56,6 +55,7 @@ const AppResponse = () => {
       if (result.status === 201) {
         toast.success("Response submitted successfully!");
         setResponse("");
+        router.push("/dashboard?activeTab=available-task");
       }
     } catch (error) {
       toast.error("Failed to submit response. Please try again.");
