@@ -1,4 +1,4 @@
-import { Card, Badge } from "flowbite-react";
+import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export function HistoryCard({ task }) {
@@ -13,31 +13,70 @@ export function HistoryCard({ task }) {
     }
   };
 
+  const statusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case "open":
+        return "bg-green-100 text-green-800";
+      case "closed":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const typeIcon = (type) => {
+    switch (type.toLowerCase()) {
+      case "surveytask":
+        return "📋";
+      case "youtubetask":
+        return "🎥";
+      case "apptask":
+        return "📱";
+      default:
+        return "❓";
+    }
+  };
+
   return (
-    <Card
-      className={`relative overflow-hidden rounded-lg shadow-md transform transition duration-300 ${
-        activeTab === "analytics" ? "cursor-pointer hover:shadow-lg hover:-translate-y-2" : ""
+    <div
+      className={`bg-white rounded-lg shadow-md overflow-hidden transition duration-300 ${
+        activeTab === "analytics"
+          ? "cursor-pointer hover:shadow-lg hover:-translate-y-1"
+          : ""
       }`}
       onClick={handleClick}
     >
-      {activeTab === "analytics" && (
-        <div className="absolute top-0 left-0 flex items-center justify-between w-full p-3 text-white bg-gradient-to-r from-blue-500 to-indigo-600">
-          <Badge color="info" size="sm">
-            ID: {task?.id}
-          </Badge>
-          <Badge color="success" size="sm">
-            {task?.type}
-          </Badge>
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-gray-600">
+            {typeIcon(task?.type)} {task?.type.replace("Task", "")}
+          </span>
+          <span
+            className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColor(
+              task?.status
+            )}`}
+          >
+            {task?.status}
+          </span>
         </div>
-      )}
-      <div className={`p-6 space-y-4 ${activeTab === "analytics" ? "pt-12" : ""}`}>
-        <h5 className="text-xl font-semibold leading-tight text-gray-900 truncate dark:text-white">
+        <h3 className="mb-2 text-lg font-semibold text-gray-800">
           {task?.heading}
-        </h5>
-        <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 line-clamp-3">
+        </h3>
+        <p className="mb-4 text-sm text-gray-600 line-clamp-2">
           {task?.instruction}
         </p>
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <span>ID: {task?.id.slice(0, 8)}...</span>
+          <span>{new Date(task?.date).toLocaleDateString()}</span>
+        </div>
       </div>
-    </Card>
+      {activeTab === "analytics" && (
+        <div className="p-3 text-center bg-blue-50">
+          <span className="text-sm font-medium text-blue-600">
+            View Analytics
+          </span>
+        </div>
+      )}
+    </div>
   );
 }

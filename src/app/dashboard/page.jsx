@@ -30,8 +30,8 @@ const componentsMap = {
   wallet: Wallet,
   ticket: TicketGeneration,
   profile: Profile,
-  surveys: SurveysResponse,
-  youtube: YouTubeResponse,
+  SurveyTask: SurveysResponse,
+  YoutubeTask: YouTubeResponse,
 };
 
 export default function Dashboard() {

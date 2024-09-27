@@ -15,11 +15,12 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "@/_lib/store/hooks";
 import { login } from "@/_lib/store/features/userInfo/userInfoSlice";
+import { getCookie } from "cookies-next";
 
 export default function Login() {
   const router = useRouter();
@@ -37,10 +38,15 @@ export default function Login() {
       role: null,
     },
   });
+ 
+  useEffect(() => {
+    if (getCookie("authorizeToken")) {
+      router.push("/dashboard");
+    }
+  }, [])
 
   const isRoleSelected = watch("role");
   const dispatch = useAppDispatch();
-
   const onSubmit = async (data, event) => {
     event.preventDefault();
     setErrorMessage(() => null);
@@ -190,7 +196,7 @@ export default function Login() {
           )}
           <HR />
 
-          <Button disabled={!isRoleSelected} color={"light"}>
+          <Button disabled={!isRoleSelected} className="hidden" color={"light"}>
             <FcGoogle className="w-5 h-5 mr-2" />
             {!isRoleSelected
               ? "To login with google please select role"
