@@ -21,11 +21,12 @@ export default function AvailableTask() {
           dispatch(addAvailableTasks({ surveys, youtube, app }));
         }
       }
+      console.log(response);
     } catch (error) {
       console.error("Error fetching available tasks:", error);
     }
   };
-
+  console.log(fetchAvailableTasks);
   useEffect(() => {
     if (testerId) {
       fetchAvailableTasks();
