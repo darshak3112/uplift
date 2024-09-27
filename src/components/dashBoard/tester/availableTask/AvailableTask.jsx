@@ -1,8 +1,8 @@
+import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
-import AvailableTasksCard from "./AvailableTasksCard";
 import axios from "axios";
-import { useEffect } from "react";
 import { addAvailableTasks } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
+import AvailableTasksCard from "./AvailableTasksCard";
 
 export default function AvailableTask() {
   const dispatch = useAppDispatch();
@@ -14,15 +14,16 @@ export default function AvailableTask() {
       if (!availableTaskData?.isTaskAvailable && testerId) {
         const response = await axios.post("/api/task/list", { testerId });
         if (response.status === 200) {
-          const { surveys, youtube, app } = response.data;
+          const { tasks } = response.data;
+          const surveys = tasks.filter(task => task.type === "SurveyTask");
+          const youtube = tasks.filter(task => task.type === "YouTubeTask");
+          const app = tasks.filter(task => task.type === "AppTask");
           dispatch(addAvailableTasks({ surveys, youtube, app }));
         }
       }
       console.log(response);
     } catch (error) {
-      const errorMessage = error?.response?.data?.message || "An error occurred.";
-      console.error(errorMessage);
-      // Handle the error, e.g., display a message to the user
+      console.error("Error fetching available tasks:", error);
     }
   };
   console.log(fetchAvailableTasks);
@@ -34,7 +35,7 @@ export default function AvailableTask() {
 
   return (
     <div>
-      <AvailableTasksCard tasksData={availableTaskData} />
+      <AvailableTasksCard />
     </div>
   );
 }
