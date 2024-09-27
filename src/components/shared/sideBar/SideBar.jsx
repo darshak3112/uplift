@@ -34,13 +34,14 @@ export function SideBarComponent() {
             label: "Available Task",
           },
           { href: "/dashboard?activeTab=applied-task", label: "Applied Task" },
+          { href: "/dashboard?activeTab=ongoing-task", label: "On-going Task" },
           { href: "/dashboard?activeTab=result-tester", label: "Result" },
         ]
       : role === "creator"
       ? [
           { href: "/dashboard?activeTab=add-task", label: "Add Task" },
           { href: "/dashboard?activeTab=ongoing-task", label: "On-going Task" },
-          { href: "/dashboard?activeTab=result-creator", label: "Result" },
+        { href: "/dashboard?activeTab=review-creator", label: "Review" },
         ]
       : [];
 

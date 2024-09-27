@@ -55,49 +55,56 @@ export default function HistoryUser() {
   }, [testerId]);
 
   const filteredTasks = historyData.history
-  .filter((task) => {
-    if (activeTab === "analytics") {
-      // Only show closed tasks in analytics and exclude tasks of type "app"
-      return task.status?.toLowerCase() === "closed" && !task.type?.toLowerCase().includes("app");
-    }
-    // For other tabs, return all tasks
-    return true;
-  })
-  .filter((task) => {
-    if (taskTypeFilter !== "all") {
-      // Normalize task type to lowercase to handle different task type names
-      const normalizedTaskType = task.type?.toLowerCase();
-      const normalizedFilter = taskTypeFilter.toLowerCase();
+    .filter((task) => {
+      if (activeTab === "analytics") {
+        // Only show closed tasks in analytics and exclude tasks of type "app"
+        return (
+          task.status?.toLowerCase() === "closed" &&
+          !task.type?.toLowerCase().includes("app")
+        );
+      } else if (activeTab === "result-creator") {
+        // Only show closed tasks in analytics and exclude tasks of type "app"
+        return task.type?.toLowerCase().includes("app");
+      }
+      // For other tabs, return all tasks
+      return true;
+    })
+    .filter((task) => {
+      if (taskTypeFilter !== "all") {
+        // Normalize task type to lowercase to handle different task type names
+        const normalizedTaskType = task.type?.toLowerCase();
+        const normalizedFilter = taskTypeFilter.toLowerCase();
 
-      // Filter based on the task type filter value
+        // Filter based on the task type filter value
+        return (
+          (normalizedTaskType.includes("app") && normalizedFilter === "app") ||
+          (normalizedTaskType.includes("youtube") &&
+            normalizedFilter === "youtube") ||
+          (normalizedTaskType.includes("survey") &&
+            normalizedFilter === "survey")
+        );
+      }
+      // If no filter is selected, return all tasks
+      return true;
+    })
+    .filter((task) => {
+      // Filter tasks based on the search term, matching heading or instruction
+      const heading = task.heading?.toLowerCase() || "";
+      const instruction = task.instruction?.toLowerCase() || "";
       return (
-        (normalizedTaskType.includes("app") && normalizedFilter === "app") ||
-        (normalizedTaskType.includes("youtube") && normalizedFilter === "youtube") ||
-        (normalizedTaskType.includes("survey") && normalizedFilter === "survey")
+        heading.includes(searchTerm.toLowerCase()) ||
+        instruction.includes(searchTerm.toLowerCase())
       );
-    }
-    // If no filter is selected, return all tasks
-    return true;
-  })
-  .filter((task) => {
-    // Filter tasks based on the search term, matching heading or instruction
-    const heading = task.heading?.toLowerCase() || "";
-    const instruction = task.instruction?.toLowerCase() || "";
-    return (
-      heading.includes(searchTerm.toLowerCase()) ||
-      instruction.includes(searchTerm.toLowerCase())
-    );
-  })
-  .sort((a, b) => {
-    // Sort tasks based on the selected sort option
-    if (sortOption === "date") {
-      return new Date(b.date) - new Date(a.date);
-    } else if (sortOption === "status") {
-      return a.status.localeCompare(b.status);
-    }
-    return 0;
-  });
-
+    })
+    .sort((a, b) => {
+      // Sort tasks based on the selected sort option
+      if (sortOption === "date") {
+        return new Date(b.date) - new Date(a.date);
+      } else if (sortOption === "status") {
+        return a.status.localeCompare(b.status);
+      }
+      return 0;
+    });
 
   useEffect(() => {
     if (isFiltering) {
@@ -125,7 +132,11 @@ export default function HistoryUser() {
   return (
     <div className="p-8 shadow-2xl bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
       <h2 className="mb-8 text-3xl font-extrabold text-center text-gray-800">
-        {activeTab === "analytics" ? "Analytics" : "Task History"}
+        {activeTab === "analytics"
+          ? "Analytics"
+          : activeTab === "review-creator"
+          ? "Reviews"
+          : "Task History"}
       </h2>
 
       <div className="flex flex-col mb-6 space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 md:space-x-4">
@@ -152,6 +163,7 @@ export default function HistoryUser() {
             <option value="survey">Survey</option>
             <option value="youtube">YouTube</option>
             <option value="app">App</option>
+            <option value="product">Product</option>
           </select>
           <select
             className="p-2 border border-gray-300 rounded-md"
