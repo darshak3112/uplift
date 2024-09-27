@@ -145,7 +145,7 @@ async function processYoutubeAnalytics(task, responseModel, session) {
     .session(session);
   const results = {};
   const options = task.specificTask.youtube_thumbnails.map(
-      (thumbnail) => thumbnail.link
+      (thumbnail) => thumbnail.title
     );
 
   options.forEach((option) => {

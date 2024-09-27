@@ -7,6 +7,7 @@ import { clearResponseTask } from "@/_lib/store/features/tester/responseTask/res
 import { clearAvailableTask } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
 export default function YouTubeResponse() {
   const searchParams = useSearchParams();
@@ -15,10 +16,19 @@ export default function YouTubeResponse() {
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const taskInfo = useAppSelector((state) =>
-    type ? state.availableTask[type].find((task) => task?._id === taskId) : null
-  );
+  // Define a mapping between task types and store keys
+  const taskMapping = {
+    SurveyTask: "surveys",
+    YoutubeTask: "youtube",
+    AppTask: "app"
+  };
 
+  // Get the corresponding tasks from the store based on type
+  const taskInfo = useAppSelector((state) => {
+    const storeKey = taskMapping[type]; // Map type to store key
+    return state.availableTask[storeKey].find((task) => task._id === taskId)?.specificTaskDetails; // Fetch the specific task
+  });
+console.log(taskInfo);
   const youtubeThumbnails = taskInfo?.youtube_thumbnails || [];
   const testerId = useAppSelector((state) => state.userInfo?.id);
 
@@ -46,6 +56,7 @@ export default function YouTubeResponse() {
       if (response.status === 201) {
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
+        dispatch(clearHistoryUser());
         toast.success("Task submitted successfully!");
         router.push("/dashboard?activeTab=history");
       }

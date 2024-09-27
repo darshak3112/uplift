@@ -16,17 +16,16 @@ export default function AvailableTask() {
         if (response.status === 200) {
           const { tasks } = response.data;
           const surveys = tasks.filter(task => task.type === "SurveyTask");
-          const youtube = tasks.filter(task => task.type === "YouTubeTask");
+          const youtube = tasks.filter(task => task.type === "YoutubeTask");
           const app = tasks.filter(task => task.type === "AppTask");
           dispatch(addAvailableTasks({ surveys, youtube, app }));
         }
       }
-      console.log(response);
     } catch (error) {
       console.error("Error fetching available tasks:", error);
     }
   };
-  console.log(fetchAvailableTasks);
+
   useEffect(() => {
     if (testerId) {
       fetchAvailableTasks();

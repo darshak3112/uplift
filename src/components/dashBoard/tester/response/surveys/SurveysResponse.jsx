@@ -11,6 +11,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import SurveyCard from "./SurveyCard";
 import { FaChevronLeft, FaClipboardList } from "react-icons/fa";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
 const SurveysResponse = () => {
   const searchParams = useSearchParams();
@@ -27,14 +28,14 @@ const SurveysResponse = () => {
   // Define a mapping between task types and store keys
   const taskMapping = {
     SurveyTask: "surveys",
-    YouTubeTask: "youtube",
+    YoutubeTask: "youtube",
     AppTask: "app"
   };
 
   // Get the corresponding tasks from the store based on type
   const taskInfo = useAppSelector((state) => {
     const storeKey = taskMapping[type]; // Map type to store key
-    return state.availableTask[storeKey].find((task) => task._id === taskId); // Fetch the specific task
+    return state.availableTask[storeKey].find((task) => task._id === taskId)?.specificTaskDetails; // Fetch the specific task
   });
 
   const testerId = useAppSelector((state) => state.userInfo.id);
@@ -80,6 +81,7 @@ const SurveysResponse = () => {
       if (response.status === 201) {
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
+        dispatch(clearHistoryUser());
         toast.success("Task submitted successfully!");
         router.push("dashboard?activeTab=history");
       }
@@ -114,7 +116,7 @@ const SurveysResponse = () => {
               <FaChevronLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <h2 className="text-3xl font-bold text-gray-800">{task?.name}</h2>
+            {/* <h2 className="text-3xl font-bold text-gray-800">{task?.name}</h2> */}
           </div>
 
           <div className="mb-8">

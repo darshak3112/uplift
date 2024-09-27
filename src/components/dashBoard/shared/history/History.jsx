@@ -31,7 +31,7 @@ export default function HistoryUser() {
         });
 
         if (response.status === 200) {
-          const { history } = response.data;  
+          const { history } = response.data;
           dispatch(addHistoryUser(history));
         }
       }
