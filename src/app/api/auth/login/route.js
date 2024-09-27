@@ -88,7 +88,7 @@ export async function POST(req) {
       );
 
       response.cookies.set("authorizeToken", token, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true,
         path: "/",
       });

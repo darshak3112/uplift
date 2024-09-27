@@ -15,10 +15,10 @@ const taskSchema = new mongoose.Schema(
     post_date: { type: Date, default: Date.now, required: true },
     end_date: { type: Date, required: true },
     tester_no: { type: Number, required: true, min: 1 },
-    tester_age: { type: Number, required: true, min: 18 },
+    tester_age: { type: Number, required: true, min: 16 },
     tester_gender: {
       type: String,
-      enum: ["Male", "Female", "Any"],
+      enum: ["Male", "Female", "Both"],
       required: true,
     },
     country: { type: String, required: true, trim: true },

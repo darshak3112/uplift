@@ -10,7 +10,7 @@ const youtubeTaskSchema = new mongoose.Schema(
     youtube_thumbnails: [
       {
         title: { type: String, required: true, trim: true },
-        link: { type: String, required: true, trim: true },
+        link: { type: String, trim: true },
         uploadedAt: { type: Date, default: Date.now },
       },
     ],

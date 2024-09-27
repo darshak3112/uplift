@@ -47,10 +47,9 @@ export async function POST(req) {
       post_date: { $lte: today },
       end_date: { $gte: today },
       country: tester.country,
-      $or: [{ tester_gender: "Any" }, { tester_gender: tester.gender }],
+      $or: [{ tester_gender: "Both" }, { tester_gender: tester.gender }],
       tester_ids: { $nin: [testerId] },
     };
-
     const tasks = await Task.find(baseQuery)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -63,7 +62,6 @@ export async function POST(req) {
         { status: 404 }
       );
     }
-
     const filteredTasks = await Promise.all(
       tasks.map(async (task) => {
         let specificTaskDetails;

@@ -18,13 +18,14 @@ export default function AvailableTask() {
           dispatch(addAvailableTasks({ surveys, youtube, app }));
         }
       }
+      console.log(response);
     } catch (error) {
       const errorMessage = error?.response?.data?.message || "An error occurred.";
       console.error(errorMessage);
       // Handle the error, e.g., display a message to the user
     }
   };
-
+  console.log(fetchAvailableTasks);
   useEffect(() => {
     if (testerId) {
       fetchAvailableTasks();

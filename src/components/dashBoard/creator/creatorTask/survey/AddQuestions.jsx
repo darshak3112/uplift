@@ -29,7 +29,7 @@ export const AddQuestions = () => {
     defaultValues: {
       title: "",
       options: [],
-      answer_type: "MCQ",
+      answer_type: "multiple_choice",
     },
   });
 
@@ -73,7 +73,7 @@ export const AddQuestions = () => {
     const questionData = {
       title: data.title,
       options: options.map((ele) => ele.text),
-      answer_type: "MCQ",
+      answer_type: "multiple_choice",
     };
 
     // Dispatch addQuestion action
