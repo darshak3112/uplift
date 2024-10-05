@@ -28,7 +28,6 @@ export async function POST(req) {
             { status: 404 }
           );
         }
-        console.log(tester.taskHistory);
         const appliedTasks = await Task.aggregate([
           {
             $match: {

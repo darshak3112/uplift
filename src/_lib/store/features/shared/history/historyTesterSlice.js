@@ -12,7 +12,7 @@ export const historyUserSlice = createSlice({
         addHistoryUser: (state, action) => {
             action.payload.forEach(newTask => {
                 const existingTaskIndex = state.history.findIndex(
-                    task => task.heading === newTask.heading
+                    task => task.id === newTask.id // Match tasks by `id` to ensure uniqueness
                 );
 
                 if (existingTaskIndex !== -1) {
@@ -23,10 +23,10 @@ export const historyUserSlice = createSlice({
                     state.history.push(newTask);
                 }
             });
-            state.isHistoryAvailable = true
+            state.isHistoryAvailable = state.history.length > 0;
         },
         clearHistoryUser: () => {
-            return initialState
+            return initialState;
         },
     },
 });

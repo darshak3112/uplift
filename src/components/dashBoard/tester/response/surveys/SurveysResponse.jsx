@@ -11,11 +11,12 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import SurveyCard from "./SurveyCard";
 import { FaChevronLeft, FaClipboardList } from "react-icons/fa";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
 const SurveysResponse = () => {
   const searchParams = useSearchParams();
   const taskId = searchParams.get("taskId");
-  const type = searchParams.get("type");
+  const type = searchParams.get("type"); // SurveyTask, YouTubeTask, AppTask
   const dispatch = useAppDispatch();
   const router = useRouter();
 
@@ -24,14 +25,22 @@ const SurveysResponse = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const taskInfo = useAppSelector(
-    (state) => type && state.availableTask[type]
-  ).filter((task) => task?._id === taskId);
+  // Define a mapping between task types and store keys
+  const taskMapping = {
+    SurveyTask: "surveys",
+    YoutubeTask: "youtube",
+    AppTask: "app"
+  };
+
+  // Get the corresponding tasks from the store based on type
+  const taskInfo = useAppSelector((state) => {
+    const storeKey = taskMapping[type]; // Map type to store key
+    return state.availableTask[storeKey].find((task) => task._id === taskId)?.specificTaskDetails; // Fetch the specific task
+  });
 
   const testerId = useAppSelector((state) => state.userInfo.id);
-  const noOfQuestions = taskInfo[0]?.noOfQuestions || 0;
-  const questions = taskInfo[0]?.questions || [];
-  const task = taskInfo[0];
+  const noOfQuestions = taskInfo?.noOfQuestions || 0;
+  const questions = taskInfo?.questions || [];
 
   const responseTaskData = useAppSelector(
     (state) => state.responseTask.response
@@ -72,6 +81,7 @@ const SurveysResponse = () => {
       if (response.status === 201) {
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
+        dispatch(clearHistoryUser());
         toast.success("Task submitted successfully!");
         router.push("dashboard?activeTab=history");
       }
@@ -106,7 +116,7 @@ const SurveysResponse = () => {
               <FaChevronLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <h2 className="text-3xl font-bold text-gray-800">{task?.name}</h2>
+            {/* <h2 className="text-3xl font-bold text-gray-800">{task?.name}</h2> */}
           </div>
 
           <div className="mb-8">

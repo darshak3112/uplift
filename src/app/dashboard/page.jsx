@@ -3,7 +3,7 @@
 import AppliedTask from "@/components/dashBoard/tester/appliedTask/AppliedTask";
 import AvailableTask from "@/components/dashBoard/tester/availableTask/AvailableTask";
 import Default from "@/components/dashBoard/creator/analytics/Analytics";
-import OnGoingTask from "@/components/dashBoard/onGoingTask/OnGoingTask";
+import OnGoingTask from "@/components/dashBoard/shared/onGoingTask/OnGoingTask";
 import Profile from "@/components/dashBoard/profile/Profile";
 import ResultCreator from "@/components/dashBoard/creator/resultCreator/ResultCreator";
 import ResultTester from "@/components/dashBoard/tester/resultTester/ResultTester";
@@ -17,6 +17,8 @@ import DefaultComponent from "@/components/dashBoard/default/Default";
 import SurveysResponse from "@/components/dashBoard/tester/response/surveys/SurveysResponse";
 import HistoryUser from "@/components/dashBoard/shared/history/History";
 import YouTubeResponse from "@/components/dashBoard/tester/response/youtube/YouTubeResponse";
+import ApproveDisapprove from "@/components/dashBoard/creator/creatorTask/appTesting/ApproveDisapprove";
+import AppResponse from "@/components/dashBoard/tester/response/app/AppResponse";
 
 const componentsMap = {
   "available-task": AvailableTask,
@@ -24,14 +26,16 @@ const componentsMap = {
   "result-tester": ResultTester,
   "add-task": AddTask,
   "ongoing-task": OnGoingTask,
-  "result-creator": ResultCreator,
+  "review-creator": ResultCreator,
   history: HistoryUser,
   analytics: Analytics,
   wallet: Wallet,
   ticket: TicketGeneration,
   profile: Profile,
-  surveys: SurveysResponse,
-  youtube: YouTubeResponse,
+  SurveyTask: SurveysResponse,
+  YoutubeTask: YouTubeResponse,
+  AppliedList: ApproveDisapprove,
+  AppTaskReview: AppResponse,
 };
 
 export default function Dashboard() {

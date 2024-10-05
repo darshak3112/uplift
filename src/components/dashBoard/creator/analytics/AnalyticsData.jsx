@@ -9,13 +9,13 @@ import Skeleton from "@/components/shared/skeleton/Skeleton";
 import { CldImage } from "next-cloudinary";
 import { Modal } from "flowbite-react";
 import { FaChevronLeft } from "react-icons/fa";
-import { IoIosCloseCircle } from "react-icons/io";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const fetchAnalyticsData = async (id, type) => {
   try {
     const response = await axios.post("/api/task/analytics", { id, type });
+    console.log("response", response);
     return response.data;
   } catch (error) {
     console.error("Error fetching analytics data:", error);
@@ -33,12 +33,13 @@ const renderSurveyAnalytics = ({
 }) => {
   const answer = task.answers[currentIndex];
   const options = Object.keys(answer.answers);
-  const counts = options.map((option) => answer.answers[option]);
-
+  const optiontoprint = Object.values(answer.answers).map((option) => option.option);
+  console.log("optionstoprint", optiontoprint);
+  const counts = options.map((option) => answer.answers[option].count);
   const barOptions = {
     chart: { type: "bar", height: 350 },
     xaxis: {
-      categories: options,
+      categories: optiontoprint,
       title: { text: "Options" },
       labels: { show: false },
     },
@@ -298,7 +299,7 @@ const AnalyticsData = () => {
       <h1 className="mb-8 text-3xl font-bold text-center text-gray-800">
         Analytics Data
       </h1>
-      {currentData.task.type === "survey"
+      {currentData.task.type === "SurveyTask"
         ? renderSurveyAnalytics({
             task: currentData.task,
             currentIndex,

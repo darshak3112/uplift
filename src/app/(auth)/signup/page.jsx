@@ -13,13 +13,14 @@ import {
 } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
+import { getCookie } from "cookies-next";
 
 export default function SignUp() {
   const gender = ["Male", "Female", "Others"];
@@ -50,6 +51,12 @@ export default function SignUp() {
   });
 
   const isRoleSelected = watch("role");
+
+  useEffect(() => {
+    if (getCookie("authorizeToken")) {
+      router.push("/dashboard");
+    }
+  }, [])
 
   const onSubmit = async (data, event) => {
     event.preventDefault();
@@ -374,7 +381,7 @@ export default function SignUp() {
           )}
           <HR />
 
-          <Button disabled={!isRoleSelected} color={"light"}>
+          <Button disabled={!isRoleSelected} className="hidden" color={"light"}>
             <FcGoogle className="w-5 h-5 mr-2" />
             {!isRoleSelected
               ? "To sign up with google please select role"
