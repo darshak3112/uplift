@@ -167,20 +167,29 @@ async function processYoutubeAnalytics(task, responseModel, session) {
   };
 }
 
-
-async function processAppAnalytics(task, responseModel, session) {
+async function processAppAnalytics(task, responseModel, session, testerModel) {
   const taskResponses = await responseModel
     .find({ taskId: task._id })
-    .session(session);
+    .session(session)
+    .populate({
+      path: "testerId", // Populating the testerId field
+      model: testerModel, // Specify the Tester model
+      select: "firstName lastName email", // Select the fields you need
+    });
 
-  // Implement app-specific analytics logic here
-  // For example, you might want to analyze the text responses
-  const textResponses = taskResponses.flatMap((response) =>
-    response.responses.map((r) => r.text)
+  // Map the taskResponses to get tester name, email, response text, and response date
+  const detailedResponses = taskResponses.flatMap((response) =>
+    response.responses.map((r) => ({
+      testerName: `${response.testerId.firstName} ${response.testerId.lastName}`,
+      email: response.testerId.email,
+      text: r.text,
+      date: r.date,
+    }))
   );
 
   return {
     totalResponses: taskResponses.length,
+    detailedResponses, // Array of detailed responses with tester info
     // Add more app-specific analytics here
   };
 }
