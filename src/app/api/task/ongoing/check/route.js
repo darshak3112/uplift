@@ -107,7 +107,7 @@ export async function POST(req) {
     // Check if the task has been checked today
     let alreadyChecked = false;
     if (taskResponseInstance) {
-      const responseDates = taskResponseInstance.response.map(
+      const responseDates = taskResponseInstance.responses.map(
         (res) => res.date
       );
       responseDates.forEach((date) => {
