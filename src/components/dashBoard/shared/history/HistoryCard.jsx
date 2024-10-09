@@ -10,6 +10,9 @@ export function HistoryCard({ task }) {
     if (activeTab === "analytics") {
       const url = `/dashboard?activeTab=analytics&id=${task?.id}&type=${task?.type}`;
       router.push(url);
+    } else if (activeTab === "review-creator") {
+      const url = `?activeTab=review-creator&taskId=${task.id}&type=AppTask`;
+      router.push(url);
     }
   };
 

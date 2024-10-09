@@ -19,6 +19,7 @@ import HistoryUser from "@/components/dashBoard/shared/history/History";
 import YouTubeResponse from "@/components/dashBoard/tester/response/youtube/YouTubeResponse";
 import ApproveDisapprove from "@/components/dashBoard/creator/creatorTask/appTesting/ApproveDisapprove";
 import AppResponse from "@/components/dashBoard/tester/response/app/AppResponse";
+import AppTaskReviews from "@/components/dashBoard/creator/review/AppTaskReviews";
 
 const componentsMap = {
   "available-task": AvailableTask,
@@ -34,6 +35,7 @@ const componentsMap = {
   profile: Profile,
   SurveyTask: SurveysResponse,
   YoutubeTask: YouTubeResponse,
+  AppTask: AppTaskReviews,
   AppliedList: ApproveDisapprove,
   AppTaskReview: AppResponse,
 };
