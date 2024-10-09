@@ -16,7 +16,7 @@ import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTe
 const SurveysResponse = () => {
   const searchParams = useSearchParams();
   const taskId = searchParams.get("taskId");
-  const type = searchParams.get("type"); // SurveyTask, YouTubeTask, AppTask
+  const type = searchParams.get("type");
   const dispatch = useAppDispatch();
   const router = useRouter();
 
@@ -24,18 +24,20 @@ const SurveysResponse = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [verificationStep, setVerificationStep] = useState(false);
+  const [verificationQuestion, setVerificationQuestion] = useState(null);
+  const [verificationAnswer, setVerificationAnswer] = useState(null);
 
-  // Define a mapping between task types and store keys
   const taskMapping = {
     SurveyTask: "surveys",
     YoutubeTask: "youtube",
-    AppTask: "app"
+    AppTask: "app",
   };
 
-  // Get the corresponding tasks from the store based on type
   const taskInfo = useAppSelector((state) => {
-    const storeKey = taskMapping[type]; // Map type to store key
-    return state.availableTask[storeKey].find((task) => task._id === taskId)?.specificTaskDetails; // Fetch the specific task
+    const storeKey = taskMapping[type];
+    return state.availableTask[storeKey].find((task) => task._id === taskId)
+      ?.specificTaskDetails;
   });
 
   const testerId = useAppSelector((state) => state.userInfo.id);
@@ -68,9 +70,33 @@ const SurveysResponse = () => {
     }
   };
 
-  const handleSubmitTask = async () => {
-    setIsSubmitting(true);
+  const handleSubmitTask = () => {
     setShowConfirmModal(false);
+    // Select a random question for verification
+    const randomIndex = Math.floor(Math.random() * responseTaskData.length);
+    const randomQuestion = questions[randomIndex];
+    setVerificationQuestion(randomQuestion);
+    setVerificationStep(true);
+  };
+  
+  const handleVerificationSubmit = () => {
+
+    const originalAnswer = responseTaskData.find(
+      (response) => response.questionId === verificationQuestion.questionId
+    )?.answer;
+    
+    if (verificationAnswer === originalAnswer) {
+      submitFinalTask();
+    } else {
+      toast.error(
+        "Verification failed. Your responses don't match. Please try again."
+      );
+      router.push("dashboard?activeTab=available-task");
+    }
+  };
+
+  const submitFinalTask = async () => {
+    setIsSubmitting(true);
     try {
       const surveyResponse = { taskId, testerId, response: responseTaskData };
       const response = await axios.post(
@@ -116,30 +142,65 @@ const SurveysResponse = () => {
               <FaChevronLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            {/* <h2 className="text-3xl font-bold text-gray-800">{task?.name}</h2> */}
           </div>
 
-          <div className="mb-8">
-            <Progress
-              progress={progressPercentage}
-              size="lg"
-              color="blue"
-              className="h-3 rounded-full"
+          {!verificationStep && (
+            <div className="mb-8">
+              <Progress
+                progress={progressPercentage}
+                size="lg"
+                color="blue"
+                className="h-3 rounded-full"
+              />
+              <p className="mt-2 text-sm text-right text-gray-600">
+                Question {questionNo} of {noOfQuestions}
+              </p>
+            </div>
+          )}
+
+          {!verificationStep ? (
+            <SurveyCard
+              questionNo={questionNo}
+              questions={questions}
+              selectedOption={selectedOption}
+              handleOptionClick={handleOptionClick}
+              handleSubmit={onSubmit}
+              isSubmitting={isSubmitting}
+              noOfQuestions={noOfQuestions}
             />
-            <p className="mt-2 text-sm text-right text-gray-600">
-              Question {questionNo} of {noOfQuestions}
-            </p>
-          </div>
-
-          <SurveyCard
-            questionNo={questionNo}
-            questions={questions}
-            selectedOption={selectedOption}
-            handleOptionClick={handleOptionClick}
-            handleSubmit={onSubmit}
-            isSubmitting={isSubmitting}
-            noOfQuestions={noOfQuestions}
-          />
+          ) : (
+            <div>
+              <h2 className="mb-6 text-2xl font-bold text-center text-gray-800">
+                Verification Question
+              </h2>
+              <h3 className="mb-4 text-xl font-semibold text-gray-700">
+                {verificationQuestion?.title}
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {verificationQuestion?.options.map((option, index) => (
+                  <Button
+                    key={index}
+                    className={`w-full py-4 text-lg font-semibold text-white transition-all duration-300 ${
+                      verificationAnswer === option
+                        ? "border-4 border-white ring-4 ring-blue-300"
+                        : ""
+                    } bg-blue-500`}
+                    onClick={() => setVerificationAnswer(option)}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                onClick={handleVerificationSubmit}
+                color="blue"
+                className="w-full py-3 mt-6 text-lg font-semibold transition-colors duration-300"
+                disabled={!verificationAnswer}
+              >
+                Submit Verification
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -149,13 +210,16 @@ const SurveysResponse = () => {
         className="bg-white rounded-lg shadow-xl"
       >
         <Modal.Header className="border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-800">Confirm Submission</h3>
+          <h3 className="text-xl font-semibold text-gray-800">
+            Confirm Submission
+          </h3>
         </Modal.Header>
         <Modal.Body>
           <div className="flex flex-col items-center justify-center p-4">
             <FaClipboardList className="w-16 h-16 mb-4 text-blue-500" />
             <p className="text-lg text-center text-gray-600">
-              Are you sure you want to submit the survey?
+              Are you sure you want to submit the survey? You will be asked to
+              verify one of your previous answers.
             </p>
           </div>
         </Modal.Body>

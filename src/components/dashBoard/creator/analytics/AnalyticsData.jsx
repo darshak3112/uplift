@@ -15,7 +15,6 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 const fetchAnalyticsData = async (id, type) => {
   try {
     const response = await axios.post("/api/task/analytics", { id, type });
-    console.log("response", response);
     return response.data;
   } catch (error) {
     console.error("Error fetching analytics data:", error);
@@ -101,9 +100,11 @@ const renderYoutubeAnalytics = ({
   selectedImage,
   setSelectedImage,
 }) => {
+  // Extract options and counts from the task data
   const youtubeOptions = task.answers.answers.map((answer) => answer.option);
   const youtubeCounts = task.answers.answers.map((answer) => answer.count);
 
+  // Define colors for the charts and image borders
   const colors = [
     "#008FFB",
     "#00E396",
@@ -115,11 +116,13 @@ const renderYoutubeAnalytics = ({
     "#D10CE8",
   ];
 
+  // Configuration for the Bar Chart
   const barOptions = {
     chart: { type: "bar", height: 350 },
     xaxis: {
       categories: youtubeOptions,
-      labels: { show: false },
+      title: { text: "Options" },
+      labels: { show: true }, // Show labels to identify options
     },
     yaxis: {
       title: { text: "Number of Votes" },
@@ -138,6 +141,7 @@ const renderYoutubeAnalytics = ({
     legend: { show: false },
   };
 
+  // Configuration for the Pie Chart
   const pieOptions = {
     chart: { type: "pie", height: 350 },
     labels: youtubeOptions,
@@ -152,6 +156,7 @@ const renderYoutubeAnalytics = ({
   const barSeries = [{ name: "Votes", data: youtubeCounts }];
   const pieSeries = youtubeCounts;
 
+  // Handler for keyboard accessibility
   const handleKeyPress = (event, option) => {
     if (event.key === "Enter" || event.key === " ") {
       setSelectedImage(option);
@@ -160,6 +165,7 @@ const renderYoutubeAnalytics = ({
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">
+      {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">{task.heading}</h2>
         <button
@@ -172,6 +178,7 @@ const renderYoutubeAnalytics = ({
       </div>
       <p className="mb-6 text-gray-600">{task.instruction}</p>
 
+      {/* Images Section */}
       <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
         {youtubeOptions.map((option, index) => (
           <div key={index} className="relative">
@@ -185,7 +192,7 @@ const renderYoutubeAnalytics = ({
               style={{ border: `8px solid ${colors[index % colors.length]}` }}
             >
               <CldImage
-                src={option}
+                src={option} // Use the actual option as the image source
                 width={300}
                 height={200}
                 alt={`Thumbnail ${index + 1}`}
@@ -199,6 +206,7 @@ const renderYoutubeAnalytics = ({
         ))}
       </div>
 
+      {/* Charts Section */}
       <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2">
         <Chart
           options={barOptions}
@@ -214,6 +222,7 @@ const renderYoutubeAnalytics = ({
         />
       </div>
 
+      {/* Modal for Enlarged Image */}
       <Modal
         show={selectedImage !== null}
         onClose={() => setSelectedImage(null)}
@@ -225,7 +234,9 @@ const renderYoutubeAnalytics = ({
             onClick={() => setSelectedImage(null)}
             className="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
             aria-label="Close modal"
-          />
+          >
+            &times;
+          </button>
         </Modal.Header>
         <Modal.Body>
           {selectedImage && (
@@ -264,6 +275,7 @@ const AnalyticsData = () => {
           const data = await fetchAnalyticsData(id, type);
           if (data?.task) {
             dispatch(setAnalyticsData([{ task: data.task }]));
+            console.log(analyticsData);
           }
         }
         setIsLoading(false);

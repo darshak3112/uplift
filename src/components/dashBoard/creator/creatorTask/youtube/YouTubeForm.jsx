@@ -33,9 +33,9 @@ export default function YouTubeForm({ setTaskCreated }) {
   } = useForm({
     defaultValues: {
       heading: "",
-      tester_no: "",
+      tester_no: 0,
       noOfThumbNails: "",
-      tester_age: "",
+      tester_age: 0,
       tester_gender: "",
       country: "",
       post_date: "",
@@ -61,7 +61,13 @@ export default function YouTubeForm({ setTaskCreated }) {
       setErrorMesstester_age("Starting Date cannot be after Ending Date");
       setLoading(() => false);
     } else {
-      const formData = { creator, ...data };
+      const formData = {
+        creator,
+        ...data,
+        tester_no: Number(data.tester_no), // Convert tester_no to number
+        tester_age: Number(data.tester_age), // Convert tester_age to number
+      };
+
       setTimeout(() => {
         setLoading(() => false);
         dispatch(addYouTubeTask(formData));

@@ -73,6 +73,7 @@ export async function POST(req) {
       name: `${tester.firstName} ${tester.lastName}`,
       email: tester.email,
       age: calculateAge(tester.dob),
+      testerId: tester._id,
     }));
 
     const totalTesters = await AppTask.aggregate([

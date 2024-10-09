@@ -42,6 +42,8 @@ export default function ApproveDisapprove() {
 
   useEffect(() => {
     filterTesters();
+    console.log(testerDetails);
+
   }, [searchTerm, ageFilter, testerDetails]);
 
   const fetchTesterList = async () => {
@@ -101,6 +103,10 @@ export default function ApproveDisapprove() {
     setLoading(true);
 
     try {
+      console.log(testerDetails);
+      console.log("tester id : ",testerId);
+      console.log("task id : ", taskId);
+      console.log("creator id : ",creatorId);
       const response = await axios.post(`/api/task/app/${action}`, {
         testerId,
         taskId,

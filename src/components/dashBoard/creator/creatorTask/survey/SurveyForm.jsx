@@ -61,7 +61,13 @@ export default function SurveyForm({ setTaskCreated }) {
       setErrorMesstester_age("Starting Date cannot be after Ending Date");
       setLoading(() => false);
     } else {
-      const formData = { creator, ...data };
+      const formData = {
+        creator,
+        ...data,
+        tester_no: Number(data.tester_no), // Convert tester_no to number
+        tester_age: Number(data.tester_age), // Convert tester_age to number
+        noOfQuestions:Number(data.noOfQuestions),
+      };
       setTimeout(() => {
         setLoading(() => false);
         dispatch(addSurveyTask(formData));

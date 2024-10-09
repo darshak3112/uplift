@@ -78,8 +78,12 @@ export default function TaskReviewForm({ setTaskCreated }) {
         );
         setLoading(() => false);
       } else {
-        const dataToSend = { creator, ...formData };
-
+        const dataToSend = {
+          creator,
+          ...formData,
+          tester_no: Number(formData.tester_no), // Convert tester_no to number
+          tester_age: Number(formData.tester_age), // Convert tester_age to number
+        };
         // Make the API call to add the task
         const response = await axios.post("/api/task/app/addtask", dataToSend);
 
@@ -299,21 +303,21 @@ export default function TaskReviewForm({ setTaskCreated }) {
       </div>
 
       {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="p-6 bg-white rounded-lg shadow-lg w-80">
-              <h3 className="mb-4 text-lg font-bold">Confirm Upload</h3>
-              <p className="mb-4">Are you sure you want to upload the task?</p>
-              <div className="flex justify-end gap-4">
-                <Button color="gray" onClick={handleCancel}>
-                  Cancel
-                </Button>
-                <Button color="blue" onClick={handleConfirm}>
-                  Confirm
-                </Button>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="p-6 bg-white rounded-lg shadow-lg w-80">
+            <h3 className="mb-4 text-lg font-bold">Confirm Upload</h3>
+            <p className="mb-4">Are you sure you want to upload the task?</p>
+            <div className="flex justify-end gap-4">
+              <Button color="gray" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button color="blue" onClick={handleConfirm}>
+                Confirm
+              </Button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </section>
   );
 }

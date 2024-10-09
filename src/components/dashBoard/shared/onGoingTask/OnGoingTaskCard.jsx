@@ -26,7 +26,7 @@ export function OnGoingTaskCard({ task }) {
   };
 
   const handleCardClick = () => {
-    if (role === "creator") {
+    if (role === "creator" && task.type==="AppTask") {
       router.push(
         `/dashboard?activeTab=ongoing-task&taskId=${task._id}&type=AppliedList`
       );

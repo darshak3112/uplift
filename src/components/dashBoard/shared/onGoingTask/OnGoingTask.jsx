@@ -18,7 +18,7 @@ export default function OnGoingTask() {
           id,
           role,
         });
-        setTasks(response.data.message);
+        setTasks(response.data.tasks);
       } catch (err) {
         setError("Failed to fetch ongoing tasks");
         console.error("Error fetching ongoing tasks:", err);
