@@ -1,53 +1,34 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { Tester, Task, AppTask, Creator } from "@/models";
+import { z } from "zod";
+
+const selectTesterSchema = z.object({
+  taskId: z.string(),
+  testerId: z.string(),
+  creatorId: z.string(),
+});
 
 export async function POST(req) {
-  const session = await mongoose.startSession(); // Start session for transaction
-  session.startTransaction(); // Begin transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const reqBody = await req.json();
-    if (!reqBody) {
-      await session.abortTransaction(); // Rollback if request body is invalid
+    const parsedData = selectTesterSchema.safeParse(await req.json());
+    if (!parsedData.success) {
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
-        { message: "Invalid request body", reqBody },
-        { status: 400 }
-      );
-    }
-    const { taskId, testerId, creatorId } = reqBody;
-
-    if (!taskId) {
-      await session.abortTransaction(); // Rollback if taskId is missing
-      session.endSession();
-      return NextResponse.json(
-        { message: "Task ID is required", reqBody },
+        { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
 
-    if (!creatorId) {
-      await session.abortTransaction(); // Rollback if creatorId is missing
-      session.endSession();
-      return NextResponse.json(
-        { message: "Creator ID is required", reqBody },
-        { status: 400 }
-      );
-    }
+    const { taskId, testerId, creatorId } = parsedData.data;
 
-    if (!testerId) {
-      await session.abortTransaction(); // Rollback if testerId is missing
-      session.endSession();
-      return NextResponse.json(
-        { message: "Tester ID is required", reqBody },
-        { status: 400 }
-      );
-    }
-
-    const tester = await Tester.findById(testerId).session(session); // Use session for the query
+    const tester = await Tester.findById(testerId).session(session);
     if (!tester) {
-      await session.abortTransaction(); // Rollback if tester not found
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "Tester ID is wrong", reqBody },
@@ -55,9 +36,9 @@ export async function POST(req) {
       );
     }
 
-    const creator = await Creator.findById(creatorId).session(session); // Use session for the query
+    const creator = await Creator.findById(creatorId).session(session);
     if (!creator) {
-      await session.abortTransaction(); // Rollback if creator not found
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "Creator ID is wrong", reqBody },
@@ -71,7 +52,7 @@ export async function POST(req) {
     }).session(session);
 
     if (!task) {
-      await session.abortTransaction(); // Rollback if task not found
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "Task not found", taskId },
@@ -79,19 +60,19 @@ export async function POST(req) {
       );
     }
     if (task.creator.toString() !== creatorId) {
-      await session.abortTransaction(); // Rollback if creatorId is wrong
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
-        { message: "You are not creator of this task", reqBody },
+        { message: "You are not the creator of this task", reqBody },
         { status: 400 }
       );
     }
 
     const specificTask = await AppTask.findById(task.specificTask).session(
       session
-    ); // Use session for the query
+    );
     if (!specificTask) {
-      await session.abortTransaction(); // Rollback if specific task not found
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "Specific task not found", taskId },
@@ -100,11 +81,11 @@ export async function POST(req) {
     }
 
     if (
-      specificTask.selected_testers.some((tester) =>
-        tester._id.equals(new mongoose.Types.ObjectId(testerId))
+      specificTask.selected_testers.some((selectedTester) =>
+        selectedTester._id.equals(new mongoose.Types.ObjectId(testerId))
       )
     ) {
-      await session.abortTransaction(); // Rollback if tester is already selected
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "This user is already selected", task },
@@ -113,23 +94,24 @@ export async function POST(req) {
     }
 
     if (
-      specificTask.rejected_testers.some((tester) =>
-        tester._id.equals(new mongoose.Types.ObjectId(testerId))
+      specificTask.rejected_testers.some((rejectedTester) =>
+        rejectedTester._id.equals(new mongoose.Types.ObjectId(testerId))
       )
     ) {
-      await session.abortTransaction(); // Rollback if tester is already rejected
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "This user is already rejected", task },
         { status: 400 }
       );
     }
+
     if (
-      !specificTask.applied_testers.some((tester) =>
-        tester._id.equals(new mongoose.Types.ObjectId(testerId))
+      !specificTask.applied_testers.some((appliedTester) =>
+        appliedTester._id.equals(new mongoose.Types.ObjectId(testerId))
       )
     ) {
-      await session.abortTransaction(); // Rollback if tester has not applied
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "You have not applied for this task", task },
@@ -139,11 +121,11 @@ export async function POST(req) {
 
     await specificTask.selected_testers.push(testerId);
     await specificTask.applied_testers.pull(testerId);
-    await specificTask.save({ session }); // Use session for the save operation
+    await specificTask.save({ session });
 
     if (specificTask.selected_testers.length === task.tester_no) {
-      taskExists.task_flag = "Closed";
-      await taskExists.save({ session }); // Use session for the save operation
+      task.task_flag = "Closed";
+      await task.save({ session });
     }
 
     await Tester.updateOne(
@@ -152,7 +134,7 @@ export async function POST(req) {
       { session }
     );
 
-    await session.commitTransaction(); // Commit the transaction if successful
+    await session.commitTransaction();
     session.endSession();
 
     return NextResponse.json(
@@ -160,7 +142,7 @@ export async function POST(req) {
       { status: 200 }
     );
   } catch (error) {
-    await session.abortTransaction(); // Rollback in case of any error
+    await session.abortTransaction();
     session.endSession();
     console.error("Error in POST request:", error);
     return NextResponse.json(

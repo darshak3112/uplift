@@ -1,36 +1,33 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { Tester, Task, AppTask } from "@/models";
+import { z } from "zod";
+
+const applyForTaskSchema = z.object({
+  testerId: z.string(),
+  taskId: z.string(),
+});
 
 export async function POST(req) {
-  const session = await mongoose.startSession(); // Start session for transaction
-  session.startTransaction(); // Begin transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const reqBody = await req.json();
-    if (!reqBody) {
-      await session.abortTransaction(); // Rollback if request body is invalid
+    const parsedData = applyForTaskSchema.safeParse(await req.json());
+    if (!parsedData.success) {
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
-        { message: "Invalid request body", reqBody },
+        { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
 
-    const { testerId, taskId } = reqBody;
+    const { testerId, taskId } = parsedData.data;
 
-    if (!testerId || !taskId) {
-      await session.abortTransaction(); // Rollback if testerId or taskId is missing
-      session.endSession();
-      return NextResponse.json(
-        { message: "Tester ID and Task ID are required", reqBody },
-        { status: 400 }
-      );
-    }
-
-    const tester = await Tester.findById(testerId).session(session); // Use session for the query
+    const tester = await Tester.findById(testerId).session(session);
     if (!tester) {
-      await session.abortTransaction(); // Rollback if tester not found
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "Tester not found", testerId },
@@ -41,9 +38,9 @@ export async function POST(req) {
     const taskExists = await Task.findOne({
       _id: taskId,
       type: "AppTask",
-    }).session(session); // Use session for the query
+    }).session(session);
     if (!taskExists) {
-      await session.abortTransaction(); // Rollback if task not found
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "Task not found", taskId },
@@ -53,9 +50,9 @@ export async function POST(req) {
 
     const specificTask = await AppTask.findById(
       taskExists.specificTask
-    ).session(session); // Use session for the query
+    ).session(session);
     if (!specificTask) {
-      await session.abortTransaction(); // Rollback if specific task not found
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "Specific task not found", taskId },
@@ -64,7 +61,7 @@ export async function POST(req) {
     }
 
     if (specificTask.applied_testers.includes(testerId)) {
-      await session.abortTransaction(); // Rollback if tester has already applied
+      await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
         { message: "You have already applied for this task", taskExists },
@@ -72,19 +69,17 @@ export async function POST(req) {
       );
     }
 
-    // Add tester to applied_testers
     specificTask.applied_testers.push(testerId);
-    await specificTask.save({ session }); // Use session for the save operation
+    await specificTask.save({ session });
 
-    // Add task to tester's task history
     tester.taskHistory.push({
-      taskId: taskId, // Ensure taskId matches the schema field name
-      status: "applied", // Ensure status is provided correctly
+      taskId: taskId,
+      status: "applied",
     });
 
-    await tester.save({ session }); // Use session for the save operation
+    await tester.save({ session });
 
-    await session.commitTransaction(); // Commit the transaction if successful
+    await session.commitTransaction();
     session.endSession();
 
     return NextResponse.json(
@@ -92,7 +87,7 @@ export async function POST(req) {
       { status: 200 }
     );
   } catch (error) {
-    await session.abortTransaction(); // Rollback in case of any error
+    await session.abortTransaction();
     session.endSession();
     console.error("Error in POST request:", error);
     return NextResponse.json(

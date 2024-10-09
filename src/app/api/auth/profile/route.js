@@ -1,90 +1,83 @@
 import mongoose from "mongoose";
-import Tester from "@/model/testerModel";
-import Creator from "@/models/user/creatorModel";
+import {Tester , Creator} from "@/models"
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-export async function POST(req) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-        const reqBody = await req.json();
+const userDetailsSchema = z.object({
+  id: z.string(),
+  role: z.enum(["tester", "creator"]),
+});
 
-        if (!reqBody) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: "Invalid request body", reqBody }, { status: 401 });
-        }
+export async function GET(req) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const role = searchParams.get("role");
 
-        const { id, role } = reqBody;
+    const parsedData = userDetailsSchema.safeParse({ id, role });
 
-        if (!id || !role) {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message: "Invalid request body", reqBody }, { status: 401 });
-        }
-
-        if (role === "tester") {
-            const tester = await Tester.findById(id);
-            if (!tester) {
-                await session.abortTransaction();
-                session.endSession();
-                return NextResponse.json({ message: "Tester not found", id }, { status: 404 });
-            }
-
-            const { firstName, lastName, email, mobileNo, gender, dob, country, role, pincode, taskHistory } = tester;
-            const response = {
-                firstName,
-                lastName,
-                email,
-                mobileNo,
-                gender,
-                dob,
-                country,
-                role,
-                pincode,
-                total_task: taskHistory.length,
-            };
-
-            await session.commitTransaction();
-            session.endSession();
-
-            return NextResponse.json(response, { status: 201 });
-        } else if (role === "creator") {
-            const creator = await Creator.findById(id);
-            if (!creator) {
-                await session.abortTransaction();
-                session.endSession();
-                return NextResponse.json({ message: "Creator not found", id }, { status: 404 });
-            }
-
-            const { firstName, lastName, email, mobileNo, gender, dob, country, role, pincode, taskHistory } = creator;
-            const response = {
-                firstName,
-                lastName,
-                email,
-                mobileNo,
-                gender,
-                dob,
-                country,
-                role,
-                pincode,
-                total_task: taskHistory.length,
-            };
-
-            await session.commitTransaction();
-            session.endSession();
-
-            return NextResponse.json(response, { status: 201 });
-        }
-
-        await session.abortTransaction();
-        session.endSession();
-        return NextResponse.json({ message: "Role is not valid", role }, { status: 400 });
-
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-
-        return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+    if (!parsedData.success) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { message: "Invalid request parameters", errors: parsedData.error.issues },
+        { status: 400 }
+      );
     }
+
+    const { id: userId, role: userRole } = parsedData.data;
+
+    if (userRole === "tester") {
+      const tester = await Tester.findById(userId)
+        .session(session)
+        .select("firstName lastName email mobileNo gender dob country role pincode taskHistory");
+
+      if (!tester) {
+        await session.abortTransaction();
+        session.endSession();
+        return NextResponse.json({ message: "Tester not found", id: userId }, { status: 404 });
+      }
+
+      const response = {
+        ...tester.toObject(),
+        total_task: tester.taskHistory.length,
+      };
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return NextResponse.json(response, { status: 200 });
+    } else if (userRole === "creator") {
+      const creator = await Creator.findById(userId)
+        .session(session)
+        .select("firstName lastName email mobileNo gender dob country role pincode taskHistory");
+
+      if (!creator) {
+        await session.abortTransaction();
+        session.endSession();
+        return NextResponse.json({ message: "Creator not found", id: userId }, { status: 404 });
+      }
+
+      const response = {
+        ...creator.toObject(),
+        total_task: creator.taskHistory.length,
+      };
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return NextResponse.json(response, { status: 200 });
+    }
+
+    await session.abortTransaction();
+    session.endSession();
+    return NextResponse.json({ message: "Role is not valid", role: userRole }, { status: 400 });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+  }
 }

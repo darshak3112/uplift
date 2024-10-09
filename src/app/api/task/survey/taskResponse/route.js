@@ -1,24 +1,35 @@
 import mongoose from "mongoose";
 import { Tester, Task, SurveyTask, SurveyResponse } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const surveyResponseSchema = z.object({
+  taskId: z.string(),
+  testerId: z.string(),
+  response: z.array(
+    z.object({
+      questionId: z.number(),
+      answer: z.string(),
+    })
+  ),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const reqBody = await req.json();
-
-    if (!reqBody || !reqBody.taskId || !reqBody.testerId || !reqBody.response) {
+    const parsedData = surveyResponseSchema.safeParse(await req.json());
+    if (!parsedData.success) {
       await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
-        { message: "Invalid request body or missing required fields" },
+        { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
 
-    const { taskId, testerId, response } = reqBody;
+    const { taskId, testerId, response } = parsedData.data;
 
     const task = await Task.findById(taskId)
       .populate("specificTask")
@@ -60,18 +71,14 @@ export async function POST(req) {
     });
 
     const savedResponse = await surveyResponse.save({ session });
-    console.log(task.tester_ids);
 
-    // Update task's tester_ids
-    // Update task's tester_ids with testerId and status if schema allows objects
-    if (!task.tester_ids.some((entry) => entry.equals(testerId))) {
+    if (!task.tester_ids.includes(testerId)) {
       task.tester_ids.push(testerId);
       await task.save({ session });
     }
 
-    // Update tester's taskHistory
     const existingTaskEntry = tester.taskHistory.find((entry) =>
-      entry.taskId.equals(taskId)
+      entry.taskId.equals(task._id)
     );
 
     if (existingTaskEntry) {

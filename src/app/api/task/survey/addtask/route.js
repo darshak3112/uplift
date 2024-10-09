@@ -1,22 +1,43 @@
 import mongoose from "mongoose";
 import { SurveyTask, Task, Creator } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const surveyTaskSchema = z.object({
+  creator: z.string(),
+  post_date: z.string(),
+  end_date: z.string(),
+  tester_no: z.number().min(1),
+  tester_age: z.number().min(18),
+  tester_gender: z.enum(["Male", "Female", "Any"]),
+  country: z.string(),
+  heading: z.string(),
+  instruction: z.string(),
+  noOfQuestions: z.number().min(1),
+  questions: z.array(
+    z.object({
+      title: z.string(),
+      answer_type: z.enum(["multiple-choice", "single-choice", "text"]),
+      options: z.array(z.string()).optional(),
+    })
+  ),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
-    const reqBody = await req.json();
-    if (!reqBody) {
+    const parsedData = surveyTaskSchema.safeParse(await req.json());
+    if (!parsedData.success) {
       await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
-        { message: "Invalid request body" },
+        { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
-    
+
     const {
       creator,
       post_date,
@@ -29,30 +50,8 @@ export async function POST(req) {
       instruction,
       noOfQuestions,
       questions,
-    } = reqBody;
-    
-    // Validate required fields
-    if (
-      !creator ||
-      !post_date ||
-      !end_date ||
-      !tester_no ||
-      !tester_age ||
-      !tester_gender ||
-      !country ||
-      !heading ||
-      !instruction ||
-      !noOfQuestions ||
-      !questions
-    ) {
-      await session.abortTransaction();
-      session.endSession();
-      return NextResponse.json(
-        { message: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-    
+    } = parsedData.data;
+
     const creatorExists = await Creator.findById(creator).session(session);
     if (!creatorExists) {
       await session.abortTransaction();
@@ -62,8 +61,8 @@ export async function POST(req) {
         { status: 404 }
       );
     }
-    
-    if (parseInt(noOfQuestions) !== questions.length) {
+
+    if (noOfQuestions !== questions.length) {
       await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
@@ -71,27 +70,26 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    
+
     const p_date = new Date(post_date);
     const e_date = new Date(end_date);
     const current_date = new Date();
     let task_flag = "Pending";
-    
+
     if (current_date >= p_date && current_date <= e_date) {
       task_flag = "Open";
     } else if (current_date > e_date) {
       task_flag = "Closed";
     }
-    
-    // Prepare questions with proper structure
+
     const formattedQuestions = questions.map((q, index) => ({
       questionId: index + 1,
       title: q.title,
-      answer_type: q.answer_type === 'multiple-choice' ? 'multiple_choice' : q.answer_type,
-      options: q.options || []
+      answer_type:
+        q.answer_type === "multiple-choice" ? "multiple_choice" : q.answer_type,
+      options: q.options || [],
     }));
-    
-    // Create a temporary Task document to get an _id
+
     const tempTask = new Task({
       type: "SurveyTask",
       creator: new mongoose.Types.ObjectId(creator),
@@ -105,29 +103,26 @@ export async function POST(req) {
       instruction,
       task_flag,
     });
-    
-    // Create SurveyTask with the temporary Task's _id
+
     const surveyTask = new SurveyTask({
       taskId: tempTask._id,
       noOfQuestions,
       questions: formattedQuestions,
     });
-    
+
     const savedSurveyTask = await surveyTask.save({ session });
-    
-    // Update the temporary Task with the specificTask field and save it
+
     tempTask.specificTask = savedSurveyTask._id;
     const savedTask = await tempTask.save({ session });
-    
-    // Update creator's task history
+
     creatorExists.taskHistory.push({
       task: savedTask._id,
     });
     await creatorExists.save({ session });
-    
+
     await session.commitTransaction();
     session.endSession();
-    
+
     return NextResponse.json(
       { message: "Survey task created successfully", task: savedTask },
       { status: 201 }

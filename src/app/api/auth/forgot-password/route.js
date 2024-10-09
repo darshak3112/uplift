@@ -2,17 +2,22 @@ import { dbConnect } from "@/_lib/db";
 import Tester from "@/models/user/testerModel";
 import Creator from "@/models/user/creatorModel";
 import { sendResetPasswordEmail } from "@/_lib/mail";
-import crypto from "crypto";
+import cryptoRandomString from "crypto-random-string";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { z } from "zod";
+// import rateLimit from "@/_lib/rateLimit";
 
 dbConnect();
+
+const RESET_TOKEN_EXPIRATION = process.env.RESET_TOKEN_EXPIRATION || 3600000; // 1 hour
 
 export async function POST(req) {
   const session = await mongoose.startSession();
 
   try {
+    // await rateLimit(req, 5, 60); // Limit to 5 requests per minute
+
     session.startTransaction();
 
     const forgotPasswordSchema = z.object({
@@ -47,9 +52,9 @@ export async function POST(req) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetToken = cryptoRandomString({ length: 20 });
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpires = Date.now() + RESET_TOKEN_EXPIRATION;
 
     await user.save({ session });
 

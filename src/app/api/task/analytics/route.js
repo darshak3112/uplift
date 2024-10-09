@@ -9,26 +9,42 @@ import {
   YoutubeResponse,
   AppResponse,
   MarketingResponse,
+  Tester,
 } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const analyticsSchema = z.object({
+  id: z.string(),
+  type: z.enum(["SurveyTask", "YoutubeTask", "AppTask", "MarketingTask"]),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { id, type } = await req.json();
+    const parsedData = analyticsSchema.safeParse(await req.json());
 
-    if (!id || !type) {
-      throw new Error("Invalid request body");
+    if (!parsedData.success) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { message: "Invalid request body", errors: parsedData.error.issues },
+        { status: 400 }
+      );
     }
+
+    const { id, type } = parsedData.data;
 
     const task = await Task.findById(id)
       .populate("specificTask")
       .session(session);
 
     if (!task) {
-      throw new Error(`Task not found`);
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json({ message: "Task not found" }, { status: 404 });
     }
 
     let responseModel, formattedResults;
@@ -55,7 +71,8 @@ export async function POST(req) {
         formattedResults = await processAppAnalytics(
           task,
           responseModel,
-          session
+          session,
+          Tester
         );
         break;
       case "MarketingTask":
@@ -67,7 +84,12 @@ export async function POST(req) {
         );
         break;
       default:
-        throw new Error("Invalid task type");
+        await session.abortTransaction();
+        session.endSession();
+        return NextResponse.json(
+          { message: "Invalid task type" },
+          { status: 400 }
+        );
     }
 
     await session.commitTransaction();
@@ -90,7 +112,10 @@ export async function POST(req) {
     await session.abortTransaction();
     session.endSession();
     console.error("Error in POST request:", error);
-    return NextResponse.json({ message: error.message }, { status: 400 });
+    return NextResponse.json(
+      { message: "Internal server error", error: error.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -128,13 +153,13 @@ async function processSurveyAnalytics(task, responseModel, session) {
       answers:
         answer_type === "multiple_choice"
           ? options.map((option) => ({
-            option,
-            count: results[questionId][option] || 0,
-          }))
+              option,
+              count: results[questionId][option] || 0,
+            }))
           : Object.entries(results[questionId]).map(([answer, count]) => ({
-            answer,
-            count,
-          })),
+              answer,
+              count,
+            })),
     })
   );
 }
@@ -145,7 +170,7 @@ async function processYoutubeAnalytics(task, responseModel, session) {
     .session(session);
   const results = {};
   const options = task.specificTask.youtube_thumbnails.map(
-    (thumbnail) => thumbnail.title
+    (thumbnail) => thumbnail.link
   );
 
   options.forEach((option) => {
@@ -172,12 +197,11 @@ async function processAppAnalytics(task, responseModel, session, testerModel) {
     .find({ taskId: task._id })
     .session(session)
     .populate({
-      path: "testerId", // Populating the testerId field
-      model: testerModel, // Specify the Tester model
-      select: "firstName lastName email", // Select the fields you need
+      path: "testerId",
+      model: testerModel,
+      select: "firstName lastName email",
     });
 
-  // Map the taskResponses to get tester name, email, response text, and response date
   const detailedResponses = taskResponses.flatMap((response) =>
     response.responses.map((r) => ({
       testerName: `${response.testerId.firstName} ${response.testerId.lastName}`,
@@ -187,12 +211,9 @@ async function processAppAnalytics(task, responseModel, session, testerModel) {
     }))
   );
 
-  console.log();
-
   return {
     totalResponses: taskResponses.length,
-    detailedResponses, // Array of detailed responses with tester info
-    // Add more app-specific analytics here
+    detailedResponses,
   };
 }
 
@@ -201,20 +222,29 @@ async function processMarketingAnalytics(task, responseModel, session) {
     .find({ taskId: task._id })
     .session(session);
 
-  // Implement marketing-specific analytics logic here
-  // For example, you might want to analyze order dates and review submission times
   const orderDates = taskResponses.map((response) => response.order.orderDate);
   const reviewSubmissionDates = taskResponses.map(
     (response) => response.liveReview.submittedAt
   );
 
+  const totalOrders = taskResponses.length;
+  const averageTimeBetweenOrderAndReview = calculateAverageTimeDifference(
+    orderDates,
+    reviewSubmissionDates
+  );
+
+  const detailedResponses = taskResponses.map((response) => ({
+    orderId: response.order.orderId,
+    orderDate: response.order.orderDate,
+    reviewLink: response.liveReview.reviewLink,
+    reviewImage: response.liveReview.reviewImage,
+    submittedAt: response.liveReview.submittedAt,
+  }));
+
   return {
-    totalOrders: taskResponses.length,
-    averageTimeBetweenOrderAndReview: calculateAverageTimeDifference(
-      orderDates,
-      reviewSubmissionDates
-    ),
-    // Add more marketing-specific analytics here
+    totalOrders,
+    averageTimeBetweenOrderAndReview,
+    detailedResponses,
   };
 }
 
@@ -222,8 +252,10 @@ function calculateAverageTimeDifference(dates1, dates2) {
   const timeDifferences = dates1.map((date, index) =>
     Math.abs(new Date(date) - new Date(dates2[index]))
   );
-  const averageTimeDifference =
-    timeDifferences.reduce((sum, diff) => sum + diff, 0) /
-    timeDifferences.length;
-  return Math.round(averageTimeDifference / (1000 * 60 * 60)); // Convert to hours
+  const totalTime = timeDifferences.reduce((sum, diff) => sum + diff, 0);
+  const averageTime = totalTime / timeDifferences.length;
+  const averageHours = Math.floor(averageTime / (1000 * 60 * 60));
+  const averageMinutes = Math.floor((averageTime % (1000 * 60 * 60)) / (1000 * 60));
+  return `${averageHours} hours ${averageMinutes} minutes`;
 }
+

@@ -1,15 +1,40 @@
 import mongoose from "mongoose";
 import { Creator, Task, YoutubeTask } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const youtubeTaskSchema = z.object({
+  creator: z.string(),
+  post_date: z.string().transform((val) => new Date(val)),
+  end_date: z.string().transform((val) => new Date(val)),
+  tester_no: z.number().min(1),
+  tester_age: z.number().min(1),
+  tester_gender: z.enum(["Male", "Female", "Any"]),
+  country: z.string(),
+  heading: z.string(),
+  instruction: z.string(),
+  youtube_thumbnails: z.array(
+    z.object({
+      title: z.string(),
+      link: z.string(),
+    })
+  ),
+  web_link: z.string(),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const reqBody = await req.json();
-    if (!reqBody) {
-      throw new Error("Invalid request body");
+    const parsedData = youtubeTaskSchema.safeParse(await req.json());
+    if (!parsedData.success) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { message: "Invalid request body", errors: parsedData.error.issues },
+        { status: 400 }
+      );
     }
 
     const {
@@ -24,54 +49,31 @@ export async function POST(req) {
       instruction,
       youtube_thumbnails,
       web_link,
-    } = reqBody;
-
-    // Validate required fields
-    const requiredFields = [
-      "creator",
-      "post_date",
-      "end_date",
-      "tester_no",
-      "tester_age",
-      "tester_gender",
-      "country",
-      "heading",
-      "instruction",
-      "youtube_thumbnails",
-      "web_link",
-    ];
-    const missingFields = requiredFields.filter((field) => !reqBody[field]);
-    if (missingFields.length > 0) {
-      throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
-    }
+    } = parsedData.data;
 
     const creatorExists = await Creator.findById(creator).session(session);
     if (!creatorExists) {
-      throw new Error("Creator not found");
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { message: "Creator not found" },
+        { status: 404 }
+      );
     }
 
-    // Validate dates
-    const p_date = new Date(post_date);
-    const e_date = new Date(end_date);
-    if (isNaN(p_date.getTime()) || isNaN(e_date.getTime())) {
-      throw new Error("Invalid date format");
-    }
-
-    // Determine task flag
     const current_date = new Date();
     let task_flag = "Pending";
-    if (current_date >= p_date && current_date <= e_date) {
+    if (current_date >= post_date && current_date <= end_date) {
       task_flag = "Open";
-    } else if (current_date > e_date) {
+    } else if (current_date > end_date) {
       task_flag = "Closed";
     }
 
-    // Create main Task document first
     const task = new Task({
       type: "YoutubeTask",
       creator,
-      post_date: p_date,
-      end_date: e_date,
+      post_date,
+      end_date,
       tester_no,
       tester_age,
       tester_gender,
@@ -81,24 +83,17 @@ export async function POST(req) {
       task_flag,
     });
 
-    // Create YoutubeTask document with taskId
     const youtubeTask = new YoutubeTask({
       taskId: task._id,
-      youtube_thumbnails: youtube_thumbnails.map((thumbnail) => ({
-        title: thumbnail.title,
-        link: thumbnail.link,
-      })),
+      youtube_thumbnails,
       web_link,
     });
 
-    // Set the specificTask field in the Task document
     task.specificTask = youtubeTask._id;
 
-    // Save both documents
     await task.save({ session });
     await youtubeTask.save({ session });
 
-    // Update creator's task history
     creatorExists.taskHistory.push({
       task: task._id,
       createdAt: new Date(),
@@ -120,6 +115,9 @@ export async function POST(req) {
     await session.abortTransaction();
     session.endSession();
     console.error("Error:", error.message);
-    return NextResponse.json({ message: error.message }, { status: 400 });
+    return NextResponse.json(
+      { message: "An error occurred", error: error.message },
+      { status: 500 }
+    );
   }
 }

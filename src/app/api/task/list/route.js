@@ -8,23 +8,30 @@ import {
   YoutubeTask,
 } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const listTasksSchema = z.object({
+  testerId: z.string(),
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).default(10),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const reqBody = await req.json();
-    if (!reqBody) {
+    const parsedData = listTasksSchema.safeParse(await req.json());
+    if (!parsedData.success) {
       await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
-        { message: "Invalid request body" },
+        { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
 
-    const { testerId, page = 1, limit = 10 } = reqBody;
+    const { testerId, page, limit } = parsedData.data;
 
     const tester = await Tester.findById(testerId).session(session);
     if (!tester) {
@@ -54,6 +61,7 @@ export async function POST(req) {
       .skip((page - 1) * limit)
       .limit(limit)
       .session(session);
+
     if (!tasks || tasks.length === 0) {
       await session.commitTransaction();
       session.endSession();
