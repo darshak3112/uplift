@@ -9,14 +9,13 @@ const youtubeTaskSchema = z.object({
   end_date: z.string().transform((val) => new Date(val)),
   tester_no: z.number().min(1),
   tester_age: z.number().min(1),
-  tester_gender: z.enum(["Male", "Female", "Any"]),
+  tester_gender: z.enum(["Male", "Female", "Both"]),
   country: z.string(),
   heading: z.string(),
   instruction: z.string(),
   youtube_thumbnails: z.array(
     z.object({
       title: z.string(),
-      link: z.string(),
     })
   ),
   web_link: z.string(),
