@@ -11,24 +11,28 @@ import {
   Textarea,
 } from "flowbite-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import { addYouTubeTask } from "@/_lib/store/features/creator/youTubeTask/youTubeTaskSlice";
 
+const PLATFORM_FEE_PERCENTAGE = 0.1;
+const PRICE_PER_THUMBNAIL = 5; // Assuming a price per thumbnail
+
 export default function YouTubeForm({ setTaskCreated }) {
   const tester_gender = ["Male", "Female", "Both"];
 
   const dispatch = useAppDispatch();
 
-  const [errorMesstester_age, setErrorMesstester_age] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const creator = useAppSelector((state) => state.userInfo.id);
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -44,9 +48,28 @@ export default function YouTubeForm({ setTaskCreated }) {
     },
   });
 
+  const tester_no = watch("tester_no");
+  const noOfThumbNails = watch("noOfThumbNails");
+
+  const pricingCalculation = useMemo(() => {
+    const numTesters = parseInt(tester_no) || 0;
+    const numThumbnails = parseInt(noOfThumbNails) || 0;
+    const totalPrice = PRICE_PER_THUMBNAIL * numThumbnails * numTesters;
+    const platformFee = totalPrice * PLATFORM_FEE_PERCENTAGE;
+    const finalPrice = totalPrice - platformFee;
+
+    return {
+      numTesters,
+      numThumbnails,
+      totalPrice,
+      platformFee,
+      finalPrice,
+    };
+  }, [tester_no, noOfThumbNails]);
+
   const onSubmit = async (data, event) => {
     event.preventDefault();
-    setErrorMesstester_age(null);
+    setErrorMessage(null);
     setLoading(() => true);
 
     let post_date = new Date(data.post_date);
@@ -55,10 +78,10 @@ export default function YouTubeForm({ setTaskCreated }) {
     today.setHours(0, 0, 0, 0); // Set today's date to midnight for accurate comparison
 
     if (post_date < today) {
-      setErrorMesstester_age("Starting Date cannot be in the past");
+      setErrorMessage("Starting Date cannot be in the past");
       setLoading(() => false);
     } else if (post_date > endDate) {
-      setErrorMesstester_age("Starting Date cannot be after Ending Date");
+      setErrorMessage("Starting Date cannot be after Ending Date");
       setLoading(() => false);
     } else {
       const formData = {
@@ -279,11 +302,6 @@ export default function YouTubeForm({ setTaskCreated }) {
                 />
               </div>
             </div>
-            {errorMesstester_age && (
-              <p className="flex justify-center -mb-8 text-base font-normal text-red-500">
-                {errorMesstester_age}
-              </p>
-            )}
             <HR />
 
             <Button type="submit" color={"blue"}>
@@ -291,10 +309,40 @@ export default function YouTubeForm({ setTaskCreated }) {
             </Button>
           </form>
         </Card>
-        <div className="items-center justify-center hidden md:flex ">
+        <div className="flex flex-col items-center">
+          <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+            <h5 className="text-xl font-bold text-gray-900 mb-4">Pricing Details</h5>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Number of Testers:</span>
+                <span>{pricingCalculation.numTesters}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Number of Thumbnails:</span>
+                <span>{pricingCalculation.numThumbnails}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total Price:</span>
+                <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Platform Fee (10%):</span>
+                <span>₹{pricingCalculation.platformFee.toFixed(2)}</span>
+              </div>
+              <hr className="my-2" />
+              <div className="flex justify-between font-bold">
+                <span>Reward per Tester:</span>
+                <span>₹{(pricingCalculation.finalPrice / pricingCalculation.numTesters).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>Final Price deducted from wallet:</span>
+                <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
           <Image
-            className="w-[450px] h-[450px]"
-            src={"/images/taskMan.png"}
+            className="mt-8"
+            src="/images/taskMan.png"
             width={450}
             height={400}
             alt="human desk"
