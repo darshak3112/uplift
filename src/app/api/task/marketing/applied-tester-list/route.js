@@ -72,6 +72,7 @@ export async function POST(req) {
           name: `${tester.firstName} ${tester.lastName}`,
           email: tester.email,
           age: tester_age,
+          testerId: tester._id,
         };
       })
     );
