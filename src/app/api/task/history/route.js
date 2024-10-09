@@ -1,30 +1,30 @@
 import mongoose from "mongoose";
 import { Tester, Creator, Task } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const taskHistorySchema = z.object({
+  id: z.string(),
+  role: z.enum(["tester", "creator"]),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const reqBody = await req.json();
+    const parsedData = taskHistorySchema.safeParse(await req.json());
 
-    if (!reqBody || !reqBody.id || !reqBody.role) {
+    if (!parsedData.success) {
       await session.abortTransaction();
       session.endSession();
       return NextResponse.json(
-        { message: "Invalid request. Missing id or role." },
+        { message: "Invalid request", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
 
-    const { id, role } = reqBody;
-
-    if (role !== "tester" && role !== "creator") {
-      await session.abortTransaction();
-      session.endSession();
-      return NextResponse.json({ message: "Invalid role" }, { status: 400 });
-    }
+    const { id, role } = parsedData.data;
 
     let user;
     if (role === "tester") {
@@ -82,7 +82,7 @@ export async function POST(req) {
     session.endSession();
     console.error("Error in POST request:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error: error.message },
       { status: 500 }
     );
   }

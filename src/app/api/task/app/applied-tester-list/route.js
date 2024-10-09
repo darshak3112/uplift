@@ -1,32 +1,29 @@
+import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { Task, AppTask, Creator, Tester } from "@/models";
-import mongoose from "mongoose";
+import { z } from "zod";
+
+const getAppliedTestersSchema = z.object({
+  taskId: z.string(),
+  creatorId: z.string(),
+  page: z.number().positive().default(1),
+  limit: z.number().positive().default(10),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const reqBody = await req.json();
-    if (!reqBody) {
+    const parsedData = getAppliedTestersSchema.safeParse(await req.json());
+    if (!parsedData.success) {
       return NextResponse.json(
-        { message: "Body should not be empty", reqBody },
+        { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
-    const { taskId, creatorId } = reqBody;
-    if (!taskId) {
-      return NextResponse.json(
-        { message: "TaskId is required", reqBody },
-        { status: 400 }
-      );
-    }
-    if (!creatorId) {
-      return NextResponse.json(
-        { message: "CreatorId is required", reqBody },
-        { status: 400 }
-      )
-    }
+
+    const { taskId, creatorId, page, limit } = parsedData.data;
 
     const creator = await Creator.findById(creatorId).session(session);
     if (!creator) {
@@ -51,7 +48,16 @@ export async function POST(req) {
       );
     }
 
-    const specificTask = await AppTask.findById(task.specificTask).session(session);
+    const specificTask = await AppTask.findById(task.specificTask)
+      .session(session)
+      .populate({
+        path: "applied_testers",
+        options: {
+          skip: (page - 1) * limit,
+          limit: limit,
+        },
+      });
+
     if (!specificTask) {
       return NextResponse.json(
         { message: "Specific task not found", taskId },
@@ -59,32 +65,56 @@ export async function POST(req) {
       );
     }
 
-    const testers = specificTask.applied_testers;
-    const testerDetails = [];
-    for (const testerId of testers) {
-      const tester = await Tester.findById(testerId).session(session);
-      const today = new Date();
-      const tester_dob = new Date(tester.dob);
-      const diffInMs = today - tester_dob;
-      const tester_age = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 365.25));
-      const data = {
-        "name": tester.firstName + ' ' + tester.lastName,
-        "email": tester.email,
-        "age": tester_age,
-        "testerId": tester._id
-      }
-      testerDetails.push(data);
-    }
+    const appliedTesters = await Tester.find({
+      _id: { $in: specificTask.applied_testers },
+    }).session(session);
+
+    const testerDetails = appliedTesters.map((tester) => ({
+      name: `${tester.firstName} ${tester.lastName}`,
+      email: tester.email,
+      age: calculateAge(tester.dob),
+    }));
+
+    const totalTesters = await AppTask.aggregate([
+      { $match: { _id: specificTask._id } },
+      { $project: { appliedTestersCount: { $size: "$applied_testers" } } },
+    ]).session(session);
+
     await session.commitTransaction();
     session.endSession();
-    return NextResponse.json({ message: "Success", testerDetails }, { status: 200 });
 
+    return NextResponse.json(
+      {
+        message: "Success",
+        testerDetails,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalTesters[0].appliedTestersCount / limit),
+          totalTesters: totalTesters[0].appliedTestersCount,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     return NextResponse.json(
-      { message: "Error in request body", error },
-      { status: 400 }
+      { message: "Error in request", error: error.message },
+      { status: 500 }
     );
   }
+}
+
+function calculateAge(dob) {
+  const today = new Date();
+  const birthDate = new Date(dob);
+  const age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    return age - 1;
+  }
+  return age;
 }

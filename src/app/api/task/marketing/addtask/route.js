@@ -1,85 +1,120 @@
 import mongoose from "mongoose";
-import Marketing from "@/models/task/marketingtaskModel";
-import Creator from "@/models/user/creatorModel";
+import { Creator, Task, MarketingTask } from "@/models";
 import { NextResponse } from "next/server";
-import Task from "@/models/task/taskModel";
 
-export async function POST(req){
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const reqBody = await req.json();
-
-        if(!reqBody)
-        {
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message : 'Invalid request body',reqBody},{status : 400})
-        }
-
-        const {creator , post_date , end_date , tester_no , tester_age , tester_gender , country , heading , instruction ,product_link , product_price , refund_percentage , product_details } = reqBody;
-
-        if(!creator || !post_date || !end_date || !tester_no || !tester_age || !tester_gender || !country || !heading || !instruction || !product_link || !product_price || !refund_percentage || !product_details) 
-        {
-            
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message : 'Invalid request body',reqBody},{status : 400})
-        }
-
-        const creatorExists = await Creator.findById(creator).session(session);
-        if(!creatorExists){
-            await session.abortTransaction();
-            session.endSession();
-            return NextResponse.json({ message : 'Creator not found',creator},{status : 404})
-        }
-
-        const p_date = new Date(post_date);
-        const e_date = new Date(end_date);
-        const marketing = new Marketing({
-            creator : new mongoose.Types.ObjectId(creator),
-            post_date : p_date,
-            end_date : e_date,
-            tester_no,
-            tester_age,
-            tester_gender,
-            country,
-            heading,
-            instruction,
-            product_link,
-            product_price,
-            refund_percentage,
-            product_details
-        });
-
-        const current_date = new Date();
-        let task_flag = "Pending";
-        if(current_date >= p_date && current_date <= e_date){
-            task_flag = "Open";
-        }else if(current_date <= p_date){
-            task_flag = "Pending";
-        }else {
-            task_flag = "Closed";
-        }
-
-        const result = await marketing.save({ session });
-        const task = new Task({
-            type: "marketing",
-            marketing: result._id,
-            task_flag,
-        })
-
-        await task.save({session})
-        await session.commitTransaction();
-        session.endSession();
-
-        return NextResponse.json({ message : 'Task added successfully',task},{status : 201});
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        console.log("Error in POST request",error);
-        return NextResponse.json({ message : "An error occurred",error:error.message},{status :500});
+export async function POST(req) {
+  let session;
+  
+  try {
+    const reqBody = await req.json();
+    if (!reqBody) {
+      return NextResponse.json({ message: "Invalid request body" }, { status: 400 });
     }
 
+    const {
+      creator,
+      post_date,
+      end_date,
+      tester_no,
+      tester_age,
+      tester_gender,
+      country,
+      heading,
+      instruction,
+      product_details,
+      product_link,
+      product_price,
+      refund_percentage,
+    } = reqBody;
+
+    if (
+      !creator ||
+      !post_date ||
+      !end_date ||
+      !tester_no ||
+      !tester_age ||
+      !tester_gender ||
+      !country ||
+      !heading ||
+      !instruction ||
+      !product_details ||
+      !product_link ||
+      !product_price ||
+      !refund_percentage
+    ) {
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+    }
+
+    const creatorExists = await Creator.findById(creator);
+    if (!creatorExists) {
+      return NextResponse.json({ message: "Creator not found" }, { status: 404 });
+    }
+
+    const p_date = new Date(post_date);
+    const e_date = new Date(end_date);
+    const current_date = new Date();
+
+    const task_flag = current_date > e_date ? "Closed" : current_date >= p_date ? "Open" : "Pending";
+
+    session = await mongoose.startSession();
+    session.startTransaction();
+
+    // Create the task and specific MarketingTask
+    const task = new Task({
+      type: "MarketingTask",
+      creator: new mongoose.Types.ObjectId(creator),
+      post_date: p_date,
+      end_date: e_date,
+      tester_no,
+      tester_age,
+      tester_gender,
+      country,
+      heading,
+      instruction,
+      task_flag,
+    });
+
+    const marketingTask = new MarketingTask({
+      taskId: task._id,
+      product_details,
+      product_link,
+      product_price,
+      refund_percentage,
+      applied_testers: [],
+      selected_testers: [],
+      rejected_testers: [],
+    });
+
+    // Link the marketingTask to the task
+    task.specificTask = marketingTask._id;
+
+    // Save operations within the transaction
+    await marketingTask.save({ session });
+    await task.save({ session });
+    await Creator.findByIdAndUpdate(
+      creator,
+      { $push: { taskHistory: { task: task._id } } },
+      { session, new: true }
+    );
+
+    await session.commitTransaction();
+
+    return NextResponse.json(
+      { message: "Marketing task added successfully", task },
+      { status: 200 }
+    );
+  } catch (error) {
+    if (session) {
+      await session.abortTransaction();
+    }
+    console.error("Error in POST request:", error);
+    return NextResponse.json(
+      { message: "An error occurred", error: error.message },
+      { status: 500 }
+    );
+  } finally {
+    if (session) {
+      session.endSession();
+    }
+  }
 }

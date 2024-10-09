@@ -1,25 +1,31 @@
 import mongoose from "mongoose";
 import { AppResponse, Task, Tester, AppTask } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const addResponseSchema = z.object({
+  testerId: z.string(),
+  text: z.string(),
+  taskId: z.string(),
+});
 
 export async function POST(req) {
   let session;
-  let retries = 3; // Retry limit for transient errors
+  let retries = 3;
 
   try {
-    const { testerId, text, taskId } = await req.json();
-
-    if (!testerId || !text || !taskId) {
+    const parsedData = addResponseSchema.safeParse(await req.json());
+    if (!parsedData.success) {
       return NextResponse.json(
-        { message: "All fields are required" },
+        { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
       );
     }
 
-    // Retry logic for handling transient transaction errors
+    const { testerId, text, taskId } = parsedData.data;
+
     while (retries > 0) {
       try {
-        // Start the session and transaction
         session = await mongoose.startSession();
         session.startTransaction();
 
@@ -111,7 +117,7 @@ export async function POST(req) {
           error.errorLabels &&
           error.errorLabels.includes("TransientTransactionError")
         ) {
-          retries -= 1; // Decrement retry count on transient error
+          retries -= 1;
         } else {
           console.error("Error in transaction:", error);
           return NextResponse.json(
@@ -126,7 +132,6 @@ export async function POST(req) {
       }
     }
 
-    // If retries exhausted
     return NextResponse.json(
       { message: "Failed after multiple retries" },
       { status: 500 }

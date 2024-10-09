@@ -9,6 +9,9 @@ import AppResponse from './response/appResponseModel.js';
 import MarketingResponse from './response/marketingResponseModel.js';
 import SurveyResponse from './response/surveyResponseModel.js';
 import YoutubeResponse from './response/youtubeResponseModel.js';
+import Admin from './user/adminModel.js';
+import Wallet from './wallet/walletModel.js';
+import Transaction from './wallet/transectionModel.js';
 
 export {
   Creator,
@@ -21,5 +24,8 @@ export {
   AppResponse,
   MarketingResponse,
   SurveyResponse,
-  YoutubeResponse
+  YoutubeResponse,
+  Admin,
+  Wallet,
+  Transaction
 };

@@ -1,15 +1,28 @@
 import mongoose from "mongoose";
 import { Creator, Task, AppTask } from "@/models";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const createAppTaskSchema = z.object({
+  creator: z.string(),
+  post_date: z.string().transform((val) => new Date(val)),
+  end_date: z.string().transform((val) => new Date(val)),
+  tester_no: z.number().positive(),
+  tester_age: z.number().positive(),
+  tester_gender: z.enum(["Male", "Female", "Any"]),
+  country: z.string().min(2),
+  heading: z.string().min(1),
+  instruction: z.string().min(1),
+});
 
 export async function POST(req) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const reqBody = await req.json();
-    if (!reqBody) {
-      throw new Error("Invalid request body");
+    const parsedData = createAppTaskSchema.safeParse(await req.json());
+    if (!parsedData.success) {
+      throw new Error(parsedData.error.message);
     }
 
     const {
@@ -22,74 +35,70 @@ export async function POST(req) {
       country,
       heading,
       instruction,
-    } = reqBody;
-
-    if (
-      !creator ||
-      !post_date ||
-      !end_date ||
-      !tester_no ||
-      !tester_age ||
-      !tester_gender ||
-      !country ||
-      !heading ||
-      !instruction
-    ) {
-      throw new Error("Missing required fields");
-    }
+    } = parsedData.data;
 
     const creatorExists = await Creator.findById(creator).session(session);
     if (!creatorExists) {
       throw new Error("Creator not found");
     }
 
-    const p_date = new Date(post_date);
-    const e_date = new Date(end_date);
     const current_date = new Date();
+    const task_flag =
+      current_date >= post_date && current_date <= end_date
+        ? "Open"
+        : current_date > end_date
+        ? "Closed"
+        : "Pending";
 
-    let task_flag = "Pending";
-    if (current_date >= p_date && current_date <= e_date) {
-      task_flag = "Open";
-    } else if (current_date > e_date) {
-      task_flag = "Closed";
-    }
+    const appTask = await AppTask.create(
+      [
+        {
+          applied_testers: [],
+          selected_testers: [],
+          rejected_testers: [],
+        },
+      ],
+      { session }
+    );
 
-    const appTask = new AppTask({
-      taskId: new mongoose.Types.ObjectId(),
-    });
+    const task = await Task.create(
+      [
+        {
+          type: "AppTask",
+          creator,
+          post_date,
+          end_date,
+          tester_no,
+          tester_age,
+          tester_gender,
+          country,
+          heading,
+          instruction,
+          task_flag,
+          specificTask: appTask[0]._id,
+        },
+      ],
+      { session }
+    );
 
-    const task = new Task({
-      type: "AppTask",
-      creator: new mongoose.Types.ObjectId(creator),
-      post_date: p_date,
-      end_date: e_date,
-      tester_no,
-      tester_age,
-      tester_gender,
-      country,
-      heading,
-      instruction,
-      task_flag,
-      specificTask: appTask._id,
-    });
+    appTask[0].taskId = task[0]._id;
+    await appTask[0].save({ session });
 
-    appTask.taskId = task._id;
-
-    await Promise.all([
-      appTask.save({ session }),
-      task.save({ session }),
-      Creator.findByIdAndUpdate(
-        creator,
-        { $push: { taskHistory: { task: task._id } } },
-        { session, new: true }
-      ),
-    ]);
+    await Creator.findByIdAndUpdate(
+      creator,
+      { $push: { taskHistory: { task: task[0]._id } } },
+      { session, new: true }
+    );
 
     await session.commitTransaction();
     session.endSession();
 
     return NextResponse.json(
-      { message: "Task added successfully", task },
+      {
+        message: "Task added successfully",
+        task: task[0],
+        appTask: appTask[0],
+      },
       { status: 200 }
     );
   } catch (error) {
