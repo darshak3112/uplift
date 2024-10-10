@@ -1,50 +1,43 @@
-export default function PricingCard({
-  name,
-  bedge,
-  price,
-  description,
-  includes,
-}) {
+"use client";
+
+import { motion } from "framer-motion";
+export default function PricingCard({ name, badge, price, color, description, includes, unit }) {
   return (
-    <div className="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow ">
-      <span className={` -mt-4 w-fit  text-xs font-medium  px-2.5 py-0.5 rounded-full ${color}`}>
-        {bedge}
-      </span>
-      <h3 className="my-4 text-3xxl font-bold">{name}</h3>
-      <p className="font-light text-gray-500 sm:text-lg ">{description}</p>
-
-      <div className="flex items-baseline justify-center my-8">
-        <span className="mx-2 font-light text-gray-500 sm:text-lg">Starts</span>
-
-        <span className="mr-2 text-3xl font-semibold">${price}</span>
-        <span className="text-gray-500 ">/month</span>
+    <motion.div
+      className="w-full max-w-sm overflow-hidden bg-white shadow-xl rounded-3xl"
+      whileHover={{ translateY: -10 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className={`p-1 ${color}`}>
+        <div className="p-8 bg-white rounded-t-3xl">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-2xl font-bold text-gray-900">{name}</h3>
+            <span className={`px-3 py-1 text-xs font-semibold ${color} text-white rounded-full`}>
+              {badge}
+            </span>
+          </div>
+          <div className="mb-6">
+            <span className="text-5xl font-extrabold">{price}</span>
+            <span className="text-xl text-gray-500">/{unit}</span>
+          </div>
+          <p className="mb-8 text-gray-600">{description}</p>
+          <ul className="mb-8 space-y-4">
+            {includes?.map((feature, index) => (
+              <li key={index} className="flex items-center">
+                <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-gray-600">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-
-      <ul role="list" className="mb-8 space-y-4 text-left">
-        {includes.map((include) => (
-          <li key={include} className="flex items-center space-x-3">
-            <svg
-              className="flex-shrink-0 w-5 h-5 text-green-500 "
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
-            <span>{include}</span>
-          </li>
-        ))}
-      </ul>
-      <a
-        href="#"
-        className="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
-      >
-        Get started
-      </a>
-    </div>
+      <div className="p-8">
+        <button className={`w-full py-4 px-6 text-white font-semibold rounded-xl shadow-lg ${color} hover:opacity-90 transition duration-300 transform hover:scale-105`}>
+          Choose Plan
+        </button>
+      </div>
+    </motion.div>
   );
 }
