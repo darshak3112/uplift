@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import toast from "react-hot-toast";
 import { clearAvailableTask } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
 import axios from "axios";
+import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
 const SkeletonLoader = () => (
   <Card className="w-full h-48 animate-pulse">
@@ -19,14 +20,19 @@ function TaskCard({ task }) {
   const testerId = useAppSelector((state) => state.userInfo?.id);
 
   const handleRedirect = async () => {
-    if (task.type === "AppTask") {
+    const { type, _id } = task;
+
+    if (type === "AppTask" || type === "MarketingTask") {
       try {
-        const response = await axios.post("/api/task/app/apply", {
-          testerId,
-          taskId: task._id,
-        });
+        const endpoint =
+          type === "AppTask"
+            ? "/api/task/app/apply"
+            : "/api/task/marketing/apply-task";
+        const response = await axios.post(endpoint, { testerId, taskId: _id });
+
         if (response.status === 200) {
           dispatch(clearAvailableTask());
+          dispatch(clearHistoryUser());
           toast.success("Task submitted successfully!");
           router.push("/dashboard?activeTab=applied-task");
         } else {
@@ -36,15 +42,18 @@ function TaskCard({ task }) {
         toast.error("An error occurred.");
       }
     } else {
-      router.push(`/dashboard?activeTab=available-task&taskId=${task._id}&type=${task.type}`);
+      router.push(
+        `/dashboard?activeTab=available-task&taskId=${_id}&type=${type}`
+      );
     }
   };
 
   const getTaskTypeBadge = (type) => {
     const badgeColors = {
       SurveyTask: "info",
-      YouTubeTask: "warning",
+      YoutubeTask: "warning",
       AppTask: "success",
+      MarketingTask: "dark",
     };
 
     return (
@@ -64,7 +73,7 @@ function TaskCard({ task }) {
           </h5>
         </div>
         <p className="flex-grow mb-3 font-normal text-gray-700 dark:text-gray-400">
-          {task.instruction}
+          {task.instruction.slice(0, 100) + "..."}
         </p>
         <div className="flex items-center mb-4 space-x-4 text-sm text-gray-600">
           <span className="flex items-center">
@@ -134,6 +143,7 @@ export default function AvailableTasksCard() {
     ...(availableTaskData?.surveys || []),
     ...(availableTaskData?.youtube || []),
     ...(availableTaskData?.app || []),
+    ...(availableTaskData?.marketingTask || []),
   ];
 
   const filteredTasks = filterTasks(availableTasks);
@@ -164,8 +174,13 @@ export default function AvailableTasksCard() {
             <option value="SurveyTask">Surveys</option>
             <option value="YouTubeTask">YouTube</option>
             <option value="AppTask">App</option>
+            <option value="MarketingTask">Marketing</option>
           </select>
-          <Button color="light" onClick={handleSortChange} className="flex items-center">
+          <Button
+            color="light"
+            onClick={handleSortChange}
+            className="flex items-center"
+          >
             <span className="mr-2">⇅</span>
             {sortOrder === "asc" ? "Oldest" : "Newest"}
           </Button>
