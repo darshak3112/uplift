@@ -125,8 +125,8 @@ export default function ProductReviewForm({ setTaskCreated }) {
 
   return (
     <section>
-      <div className="flex justify-center gap-24 px-5 py-8 md:px-14">
-        <Card className="max-w-lg">
+          <div className="flex flex-col md:flex-row justify-center gap-24 px-5 py-8 md:px-14">
+          <Card className="max-w-lg w-full">
           <div className="flex flex-col items-center mb-4">
             <h5 className="text-2xl font-bold tracking-tight text-gray-900">
               Product Marketing Form
@@ -331,11 +331,10 @@ export default function ProductReviewForm({ setTaskCreated }) {
           </form>
         </Card>
 
-        <div className="flex flex-col items-center">
-          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-            <h5 className="mb-4 text-xl font-bold text-gray-900">
-              Pricing Details
-            </h5>
+        <div className="flex flex-col items-center w-full md:w-auto">
+            <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+              {/* Pricing Details */}
+              <h5 className="text-xl font-bold text-gray-900 mb-4">Pricing Details</h5>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Number of Testers:</span>
@@ -365,33 +364,18 @@ export default function ProductReviewForm({ setTaskCreated }) {
                 <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
               </div>
             </div>
-          </div>
-          <Image
-            className="mt-8"
-            src="/images/taskMan.png"
-            width={450}
-            height={400}
-            alt="human desk"
-          />
-        </div>
-      </div>
-
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="p-6 bg-white rounded-lg shadow-lg w-80">
-            <h3 className="mb-4 text-lg font-bold">Confirm Upload</h3>
-            <p className="mb-4">Are you sure you want to upload the task?</p>
-            <div className="flex justify-end gap-4">
-              <Button color="gray" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button color="blue" onClick={handleConfirm}>
-                Confirm
-              </Button>
             </div>
-          </div>
-        </div>
-      )}
+    
+    {/* Image: Hidden on small screens */}
+    <Image
+      className="mt-8 hidden md:block"
+      src="/images/taskMan.png"
+      width={450}
+      height={400}
+      alt="human desk"
+    />
+  </div>
+</div>
     </section>
   );
 }

@@ -102,8 +102,8 @@ export default function YouTubeForm({ setTaskCreated }) {
 
   return (
     <section>
-      <div className="flex justify-center gap-24 px-5 py-8 md:px-14">
-        <Card className="max-w-lg">
+        <div className="flex flex-col md:flex-row justify-center gap-24 px-5 py-8 md:px-14">
+          <Card className="max-w-lg w-full">
           <div className="flex flex-col items-center">
             <h5 className="text-2xl font-bold tracking-tight text-gray-900 ">
               YouTube Thumbnail
@@ -309,9 +309,9 @@ export default function YouTubeForm({ setTaskCreated }) {
             </Button>
           </form>
         </Card>
-        <div className="flex flex-col items-center">
-          <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
-            <h5 className="text-xl font-bold text-gray-900 mb-4">Pricing Details</h5>
+        <div className="flex flex-col items-center w-full md:w-auto">
+        <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+          <h5 className="text-xl font-bold text-gray-900 mb-4">Pricing Details</h5>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Number of Testers:</span>
@@ -339,16 +339,18 @@ export default function YouTubeForm({ setTaskCreated }) {
                 <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
               </div>
             </div>
-          </div>
-          <Image
-            className="mt-8"
-            src="/images/taskMan.png"
-            width={450}
-            height={400}
-            alt="human desk"
-          />
-        </div>
-      </div>
+            </div>
+    
+    {/* Image: Hidden on small screens */}
+    <Image
+      className="mt-8 hidden md:block"
+      src="/images/taskMan.png"
+      width={450}
+      height={400}
+      alt="human desk"
+    />
+  </div>
+</div>
     </section>
   );
 }

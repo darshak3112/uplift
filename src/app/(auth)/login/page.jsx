@@ -21,11 +21,13 @@ import toast from "react-hot-toast";
 import { useAppDispatch } from "@/_lib/store/hooks";
 import { login } from "@/_lib/store/features/userInfo/userInfoSlice";
 import { getCookie } from "cookies-next";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Login() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -38,7 +40,7 @@ export default function Login() {
       role: null,
     },
   });
- 
+
   useEffect(() => {
     if (getCookie("authorizeToken")) {
       router.push("/dashboard");
@@ -78,6 +80,10 @@ export default function Login() {
         }, 4800);
       }
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -141,54 +147,67 @@ export default function Login() {
           </div>
         </div>
         <form
-          method="POST"
-          className="flex flex-col gap-4"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <div className="flex flex-col gap-4 md:flex-row">
-            <div>
-              <div className="block mb-2">
-                <Label htmlFor="email" value="Email" />
+            method="POST"
+            className="flex flex-col gap-4"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <div className="flex flex-col gap-4 md:flex-row">
+              <div>
+                <div className="block mb-2">
+                  <Label htmlFor="email" value="Email" />
+                </div>
+                <TextInput
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="name@company.com"
+                  {...register("email")}
+                  required
+                />
+                {errors?.email && setErrorMessage(null) && (
+                  <p className="mt-2 text-sm text-red-500">
+                    {errors?.email?.message}
+                  </p>
+                )}
               </div>
-              <TextInput
-                id="email"
-                type="email"
-                name="email"
-                placeholder="name@company.com"
-                {...register("email")}
-                required
-              />
-              {errors?.email && setErrorMessage(null) && (
-                <p className="mt-2 text-sm text-red-500">
-                  {errors?.email?.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <div className="block mb-2">
-                <Label htmlFor="password" value="Password" />
+              <div>
+                <div className="block mb-2">
+                  <Label htmlFor="password" value="Password" />
+                </div>
+                <div className="relative">
+                  <TextInput
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    name="password"
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 8,
+                        message: "Password must be at least 8 characters",
+                      },
+                    })}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  >
+                    {showPassword ? (
+                      <FaEyeSlash className="text-gray-400" />
+                    ) : (
+                      <FaEye className="text-gray-400" />
+                    )}
+                  </button>
+                </div>
+                {errors?.password && (
+                  <p className="md:max-w-[10rem] mt-2 text-sm text-red-500">
+                    {errors?.password?.message}
+                  </p>
+                )}
               </div>
-              <TextInput
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                name="password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters",
-                  },
-                })}
-                required
-              />
-              {errors?.password && (
-                <p className="md:max-w-[10rem] mt-2 text-sm text-red-500">
-                  {errors?.password?.message}
-                </p>
-              )}
             </div>
-          </div>
           {errorMessage && (
             <p className="flex justify-center -mb-8 text-base font-normal text-red-500">
               {errorMessage}
@@ -219,7 +238,7 @@ export default function Login() {
           <Button disabled={!isRoleSelected} type="submit" color={"blue"}>
             {loading ? <SpinnerComponent /> : "Sign in to your account"}
           </Button>
-        </form>
+          </form>
       </Card>
       <div className="hidden md:block ">
         <Image

@@ -1,53 +1,58 @@
 export const pricingPlans = [
-  // {
-  //   name: "Launch",
-  //   bedge: "Starter Pack",
-  //   price: 4,
-  //   description: "Ideal for startups, personal and early-stage projects ",
-  //   includes: [
-  //     "5 reviews per month",
-  //     "Up to 60 testers per review",
-  //     "Basic analytics dashboard",
-  //     "Customer support",
-  //   ],
-  // },
   {
-    name: "Ascend",
-    bedge: "Social Media Pack",
-
-    price: 4.99,
-    description: "Perfect for optimizing your YouTube content.",
+    name: "OpinionPulse",
+    badge: "Insightor",
+    price: 1,
+    unit: "per question per tester",
+    color: "bg-green-100",
+    description: "Gather insights efficiently with our flexible survey solution.",
     includes: [
-      "Thumbnail testing",
-      "Targeted audience selection (price based on audience size)",
-      "Advanced analytics dashboard",
-      "Customer support",
-    ],
+      "Customizable surveys",
+      "Real-time response tracking",
+      "Basic statistical analysis",
+      "Mobile-responsive surveys",
+      "Survey logic and security"
+    ]
   },
   {
-    name: "Propel ",
-    bedge: "Developer Pack",
-    price: 6.99,
-    description: "Designed to streamline your app development process.",
+    name: "ThumbTune",
+    badge: "ClickMagnet",
+    color: "bg-red-100",
+    price: 5,
+    unit: "per thumbnail per tester",
+    description: "Optimize your YouTube content with data-driven thumbnail testing.",
     includes: [
-      "Test up to 4 applications per month",
-      "10 dedicated testers per application",
-      "In-app chat with testers",
-      "Enhanced analytics dashboard",
-      "Customer support",
-    ],
+      "testing for thumbnails",
+      "Audience demographic insights",
+      "Quick user feedback",
+    ]
   },
   {
-    name: "Amplify ",
-    bedge: "Marketing Pack",
-    price: 9.99,
-    description: "Boost your products with targeted marketing insights.",
+    name: "AppPad",
+    badge: "UX Optimizer",
+    color: "bg-blue-100",
+    price: 20,
+    unit: "per app per tester",
+    description: "Streamline your app development with comprehensive user testing.",
     includes: [
-      "Target audience identification",
-      "Positive feedback generation ",
-      "E-Commerce review",
-      "In-depth analytics dashboard",
-      "Customer support",
-    ],
+      "In-depth UX analysis",
+      "Bug reporting analytics",
+      "Google Play Integration",
+      "Feedback collection on site",
+      "Localization testing"
+    ]
   },
+  {
+    name: "MarketMag",
+    badge: "ProdLift",
+    color: "bg-purple-100",
+    price: 15,
+    unit: "per product per tester",
+    description: "Amplify your product's market presence with targeted insights.",
+    includes: [
+      "Product review analysis",
+      "Review Tracking",
+      "Geniuneity verification",
+    ]
+  }
 ];
