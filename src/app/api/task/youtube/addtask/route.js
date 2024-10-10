@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Creator, Task, YoutubeTask } from "@/models";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { debitWallet } from "@/_lib/walletService";
 
 const youtubeTaskSchema = z.object({
   creator: z.string(),
@@ -22,101 +23,128 @@ const youtubeTaskSchema = z.object({
 });
 
 export async function POST(req) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const MAX_RETRIES = 3; // Set max retries for write conflicts
 
-  try {
-    const parsedData = youtubeTaskSchema.safeParse(await req.json());
-    if (!parsedData.success) {
-      await session.abortTransaction();
-      session.endSession();
+  let session; // Declare session outside the loop
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      session = await mongoose.startSession(); // Start the session
+      session.startTransaction(); // Start a transaction
+
+      const parsedData = youtubeTaskSchema.safeParse(await req.json());
+      if (!parsedData.success) {
+        await session.abortTransaction(); // Abort on validation failure
+        return NextResponse.json(
+          { message: "Invalid request body", errors: parsedData.error.issues },
+          { status: 400 }
+        );
+      }
+
+      const {
+        creator,
+        post_date,
+        end_date,
+        tester_no,
+        tester_age,
+        tester_gender,
+        country,
+        heading,
+        instruction,
+        youtube_thumbnails,
+        web_link,
+      } = parsedData.data;
+
+      const creatorExists = await Creator.findById(creator).session(session);
+      if (!creatorExists) {
+        await session.abortTransaction();
+        return NextResponse.json(
+          { message: "Creator not found" },
+          { status: 404 }
+        );
+      }
+
+      const current_date = new Date();
+      let task_flag = "Pending";
+      if (current_date >= post_date && current_date <= end_date) {
+        task_flag = "Open";
+      } else if (current_date > end_date) {
+        task_flag = "Closed";
+      }
+
+      const task = new Task({
+        type: "YoutubeTask",
+        creator,
+        post_date,
+        end_date,
+        tester_no,
+        tester_age,
+        tester_gender,
+        country,
+        heading,
+        instruction,
+        task_flag,
+      });
+
+      const youtubeTask = new YoutubeTask({
+        taskId: task._id,
+        youtube_thumbnails,
+        web_link,
+      });
+
+      task.specificTask = youtubeTask._id;
+
+      await task.save({ session });
+      await youtubeTask.save({ session });
+
+      creatorExists.taskHistory.push({
+        task: task._id,
+        createdAt: new Date(),
+      });
+      await creatorExists.save({ session });
+
+      const walletDebit = await debitWallet(creator, tester_no * 5, task._id);
+      console.log("walletDebit", walletDebit);
+      if (!walletDebit.success) {
+        await session.abortTransaction();
+        return NextResponse.json(
+          {
+            message:
+              "YouTube task created successfully but don't have enough money in wallet",
+            task: task,
+          },
+          { status: 402 }
+        );
+      }
+
+      await session.commitTransaction(); // Commit the transaction
       return NextResponse.json(
-        { message: "Invalid request body", errors: parsedData.error.issues },
-        { status: 400 }
+        {
+          message: "YouTube task created successfully",
+          task: task,
+          youtubeTask: youtubeTask,
+        },
+        { status: 201 }
       );
-    }
+    } catch (error) {
+      if (session) await session.abortTransaction(); // Ensure the transaction is aborted on failure
+      console.error("Attempt", attempt + 1, "Error:", error.message);
 
-    const {
-      creator,
-      post_date,
-      end_date,
-      tester_no,
-      tester_age,
-      tester_gender,
-      country,
-      heading,
-      instruction,
-      youtube_thumbnails,
-      web_link,
-    } = parsedData.data;
+      // Retry if it's a write conflict
+      if (
+        attempt < MAX_RETRIES - 1 &&
+        error.message.includes("Write conflict")
+      ) {
+        console.log("Retrying transaction...");
+        continue; // Retry the transaction
+      }
 
-    const creatorExists = await Creator.findById(creator).session(session);
-    if (!creatorExists) {
-      await session.abortTransaction();
-      session.endSession();
       return NextResponse.json(
-        { message: "Creator not found" },
-        { status: 404 }
+        { message: "An error occurred", error: error.message },
+        { status: 500 }
       );
+    } finally {
+      if (session) session.endSession(); // Always ensure session is ended
     }
-
-    const current_date = new Date();
-    let task_flag = "Pending";
-    if (current_date >= post_date && current_date <= end_date) {
-      task_flag = "Open";
-    } else if (current_date > end_date) {
-      task_flag = "Closed";
-    }
-
-    const task = new Task({
-      type: "YoutubeTask",
-      creator,
-      post_date,
-      end_date,
-      tester_no,
-      tester_age,
-      tester_gender,
-      country,
-      heading,
-      instruction,
-      task_flag,
-    });
-
-    const youtubeTask = new YoutubeTask({
-      taskId: task._id,
-      youtube_thumbnails,
-      web_link,
-    });
-
-    task.specificTask = youtubeTask._id;
-
-    await task.save({ session });
-    await youtubeTask.save({ session });
-
-    creatorExists.taskHistory.push({
-      task: task._id,
-      createdAt: new Date(),
-    });
-    await creatorExists.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
-
-    return NextResponse.json(
-      {
-        message: "YouTube task created successfully",
-        task: task,
-        youtubeTask: youtubeTask,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Error:", error.message);
-    return NextResponse.json(
-      { message: "An error occurred", error: error.message },
-      { status: 500 }
-    );
   }
 }

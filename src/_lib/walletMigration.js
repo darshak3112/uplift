@@ -62,4 +62,4 @@ const runMigration = async () => {
   await createWalletsForExistingUsers();
 };
 
-export  {runMigration};
+export {runMigration};

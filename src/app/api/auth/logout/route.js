@@ -9,7 +9,7 @@ export async function GET() {
   try {
     response.cookies.delete("authorizeToken", {
       path: "/",
-      httpOnly: true,
+      httpOnly: false,
       secure: true,
       sameSite: "strict",
     });

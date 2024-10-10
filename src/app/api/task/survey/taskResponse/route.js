@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Tester, Task, SurveyTask, SurveyResponse } from "@/models";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { creditWallet } from "@/_lib/walletService";
 
 const surveyResponseSchema = z.object({
   taskId: z.string(),
@@ -12,6 +13,7 @@ const surveyResponseSchema = z.object({
       answer: z.string(),
     })
   ),
+  status: z.enum(["accepted", "rejected"]),
 });
 
 export async function POST(req) {
@@ -19,6 +21,38 @@ export async function POST(req) {
   session.startTransaction();
 
   try {
+    
+
+    const { taskId, testerId, status } = req.json();
+    if (status === "rejected") {
+      const tester = await Tester.findById(testerId).session(session);
+      const task = await Task.findById(taskId).session(session);
+      const existingTaskEntry = tester.taskHistory.find((entry) =>
+        entry.taskId.equals(task._id)
+      );
+
+      if (existingTaskEntry) {
+        existingTaskEntry.status = "rejected";
+        existingTaskEntry.appliedAt = new Date();
+      } else {
+        tester.taskHistory.push({
+          taskId: task._id,
+          status: "rejected",
+          appliedAt: new Date(),
+        });
+      }
+
+      await tester.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+
+      return NextResponse.json(
+        {
+          message: "Survey response rejected successfully",
+        },
+        { status: 201 }
+      );
+    }
     const parsedData = surveyResponseSchema.safeParse(await req.json());
     if (!parsedData.success) {
       await session.abortTransaction();
@@ -26,10 +60,10 @@ export async function POST(req) {
       return NextResponse.json(
         { message: "Invalid request body", errors: parsedData.error.issues },
         { status: 400 }
-      );
+      );  
     }
 
-    const { taskId, testerId, response } = parsedData.data;
+    const { response } = parsedData.data;
 
     const task = await Task.findById(taskId)
       .populate("specificTask")
@@ -99,6 +133,16 @@ export async function POST(req) {
       await task.save({ session });
     }
 
+    const result = await creditWallet(testerId ,response.length * 0.9, task._id);
+
+    if(result.success === false){
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { message: result.message },
+        { status: 500 }
+      );
+    }
     await session.commitTransaction();
     session.endSession();
 

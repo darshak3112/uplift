@@ -31,7 +31,7 @@ const testerSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["applied", "pending", "rejected", "success"],
+          enum: ["applied", "pending", "rejected", "success","inreview","response-rejected"],
           required: true,
         },
         appliedAt: { type: Date, default: Date.now },

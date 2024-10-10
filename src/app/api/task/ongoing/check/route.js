@@ -103,7 +103,7 @@ export async function POST(req) {
       taskId: taskId, // Ensure the field names match your schema
       testerId: id, // Ensure the field names match your schema
     });
-
+    
     // Check if the task has been checked today
     let alreadyChecked = false;
     if (taskResponseInstance) {

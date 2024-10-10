@@ -3,6 +3,8 @@ import { SurveyTask, Task, Creator } from "@/models";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { debitWallet } from "@/_lib/walletService";
+
 const surveyTaskSchema = z.object({
   creator: z.string(),
   post_date: z.string(),
@@ -120,9 +122,20 @@ export async function POST(req) {
     });
     await creatorExists.save({ session });
 
+   
+
+    const walletDebit = await debitWallet(creator, tester_no*noOfQuestions , tempTask._id);
+    if (!walletDebit.success) {
+      return NextResponse.json(
+        {
+          message: "Survey task created successfully but dont have enough money in wallet",
+          task: savedTask,
+        },
+        { status: 402 }
+      );
+    }
     await session.commitTransaction();
     session.endSession();
-
     return NextResponse.json(
       { message: "Survey task created successfully", task: savedTask },
       { status: 201 }
