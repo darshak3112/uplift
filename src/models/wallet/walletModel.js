@@ -4,12 +4,14 @@ const walletSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       refPath: "userType", // Dynamic reference based on userType
+      required: function () {
+        return this.userType !== "System"; // 'user' is required only for non-system users
+      },
     },
     userType: {
       type: String,
-      enum: ["Tester", "Creator", "Admin"], // Define the user types
+      enum: ["Tester", "Creator", "System"], // Define the user types
       required: true,
     },
     balance: {

@@ -37,6 +37,9 @@ export async function POST(req) {
         },
       });
 
+      
+      console.log(appliedTasks);
+
       if (appliedTasks.length === 0) {
         return NextResponse.json(
           { message: "No applied tasks found", id },
@@ -62,12 +65,15 @@ export async function POST(req) {
         _id: { $in: creator.taskHistory.map((task) => task.task) },
       });
 
+      
       if (openTasks.length === 0) {
         return NextResponse.json(
           { message: "No open tasks found", id },
           { status: 404 }
         );
       }
+
+      
 
       return NextResponse.json(
         { message: "Success", tasks: openTasks },

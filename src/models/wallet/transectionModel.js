@@ -2,38 +2,29 @@ import mongoose from "mongoose";
 
 const transactionSchema = new mongoose.Schema(
   {
-    from: {
-      userType: {
-        type: String,
-        enum: ["Tester", "Creator", "Admin"], // Specify the type of user
-        required: true,
-      },
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        refPath: "from.userType", // Dynamic reference
-      },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User", // Reference to a common User model (either Creator or Tester)
     },
-    to: {
-      userType: {
-        type: String,
-        enum: ["Tester", "Creator", "Admin"],
-        required: true,
-      },
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        refPath: "to.userType", // Dynamic reference
-      },
+    direction: {
+      type: String,
+      enum: ["credit", "debit"], // Credit means to the system, Debit means from the system
+      required: true,
     },
     amount: {
       type: Number,
       required: true,
     },
+    taskId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Task",
+    },
     status: {
       type: String,
       enum: ["Pending", "Completed", "Failed"],
-      default: "Pending",
+      default: "Completed",
     },
     createdAt: {
       type: Date,

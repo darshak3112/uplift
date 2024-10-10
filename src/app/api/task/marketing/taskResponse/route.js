@@ -92,6 +92,15 @@ export async function POST(req) {
       { session }
     );
 
+    
+    await Tester.updateOne(
+      { _id: testerId, "taskHistory.taskId": taskId },
+      { $set: { "taskHistory.$.status": "inreview" } },
+      { session }
+    );
+    
+
+
     await session.commitTransaction();
 
     return NextResponse.json(
