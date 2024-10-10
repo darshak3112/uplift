@@ -1,12 +1,11 @@
 "use client";
 
-import { Button, Navbar } from "flowbite-react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Link as ScrollLink } from "react-scroll";
 import { usePathname, useRouter } from "next/navigation";
 import { getCookie } from "cookies-next";
-import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useAppDispatch } from "@/_lib/store/hooks";
@@ -21,12 +20,12 @@ import { clearYouTubeTask } from "@/_lib/store/features/creator/youTubeTask/youT
 export function HeaderComponent() {
   const [authorizeToken, setAuthorizeToken] = useState(null);
   const [isClient, setIsClient] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // Ensure this runs only on the client
     setIsClient(true);
     const token = getCookie("authorizeToken");
     setAuthorizeToken(token);
@@ -34,9 +33,7 @@ export function HeaderComponent() {
 
   const handleLogout = async () => {
     try {
-      // Make a request to the logout route
       const { status } = await axios.get("/api/auth/logout");
-
       if (status === 200) {
         toast.success("Logout Successfully...");
         dispatch(logout());
@@ -46,7 +43,7 @@ export function HeaderComponent() {
         dispatch(clearSurveyTask());
         dispatch(clearAnalyticsData());
         dispatch(clearYouTubeTask());
-        setAuthorizeToken(null); // Clear the token state
+        setAuthorizeToken(null);
         router.push("/login");
       }
     } catch (error) {
@@ -62,66 +59,122 @@ export function HeaderComponent() {
   ];
 
   return (
-    <Navbar fluid rounded>
-      <Navbar.Brand href="/">
-        <Image
-          src="/images/Logo.png"
-          width={70}
-          height={350}
-          className="h-6 sm:h-16"
-          alt="App Name"
-        />
-        <span className="self-center text-3xl font-semibold whitespace-nowrap">
-          Uplift
-        </span>
-      </Navbar.Brand>
-      <div className="flex md:order-2">
-        {isClient &&
-          (!authorizeToken ? (
-            <Link
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"
-              href={pathname === "/login" ? "/signup" : "/login"}
-            >
-              {pathname === "/login" ? "SignUp" : "Login"}
-            </Link>
-          ) : (
-            <Button color={"blue"} onClick={handleLogout}>
-              Logout
-            </Button>
-          ))}
-        <Navbar.Toggle />
-      </div>
-      <Navbar.Collapse>
-        <Link
-          color={"black"}
-          className="text-xl cursor-pointer hover:text-blue-600"
-          href="/"
-        >
-          Home
-        </Link>
-        {pathname === "/" &&
-          navigationItems.map((item) => (
-            <ScrollLink
-              className="text-xl cursor-pointer hover:text-blue-600"
-              key={item?.text}
-              activeClassName="active"
-              to={item?.id}
-              spy={true}
-              smooth={true}
-              offset={-50}
-            >
-              {item?.text}
-            </ScrollLink>
-          ))}
-        {authorizeToken && pathname !== "/dashboard" && (
-          <Link
-            className="text-xl font-semibold text-blue-600 cursor-pointer"
-            href="/dashboard"
-          >
-            DashBoard
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+      <nav className="container px-4 py-4 mx-auto sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="flex items-center space-x-3">
+            <Image
+              src="/images/Logo.png"
+              width={40}
+              height={40}
+              alt="Uplift Logo"
+              className="w-auto h-8 sm:h-10"
+            />
+            <span className="text-xl font-bold text-gray-800">Uplift</span>
           </Link>
+
+          {/* Desktop Navigation */}
+          <div className="items-center hidden space-x-6 md:flex">
+            <Link href="/" className="text-gray-600 transition-colors hover:text-blue-600">
+              Home
+            </Link>
+            {pathname === "/" &&
+              navigationItems.map((item) => (
+                <ScrollLink
+                  key={item.text}
+                  to={item.id}
+                  spy={true}
+                  smooth={true}
+                  offset={-70}
+                  className="text-gray-600 transition-colors cursor-pointer hover:text-blue-600"
+                >
+                  {item.text}
+                </ScrollLink>
+              ))}
+            {authorizeToken && pathname !== "/dashboard" && (
+              <Link href="/dashboard" className="font-semibold text-blue-600 transition-colors hover:text-blue-800">
+                Dashboard
+              </Link>
+            )}
+            {isClient &&
+              (!authorizeToken ? (
+                <Link
+                  href={pathname === "/login" ? "/signup" : "/login"}
+                  className="px-4 py-2 text-white transition-colors bg-blue-600 rounded-full hover:bg-blue-700"
+                >
+                  {pathname === "/login" ? "Sign Up" : "Login"}
+                </Link>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-white transition-colors bg-red-500 rounded-full hover:bg-red-600"
+                >
+                  Logout
+                </button>
+              ))}
+          </div>
+
+          {/* Mobile Navigation Toggle */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-600 hover:text-blue-600 focus:outline-none"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        {isOpen && (
+          <div className="mt-4 space-y-4 md:hidden">
+            <Link href="/" className="block text-gray-600 transition-colors hover:text-blue-600">
+              Home
+            </Link>
+            {pathname === "/" &&
+              navigationItems.map((item) => (
+                <ScrollLink
+                  key={item.text}
+                  to={item.id}
+                  spy={true}
+                  smooth={true}
+                  offset={-70}
+                  className="block text-gray-600 transition-colors cursor-pointer hover:text-blue-600"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.text}
+                </ScrollLink>
+              ))}
+            {authorizeToken && pathname !== "/dashboard" && (
+              <Link href="/dashboard" className="block font-semibold text-blue-600 transition-colors hover:text-blue-800">
+                Dashboard
+              </Link>
+            )}
+            {isClient &&
+              (!authorizeToken ? (
+                <Link
+                  href={pathname === "/login" ? "/signup" : "/login"}
+                  className="block px-4 py-2 text-center text-white transition-colors bg-blue-600 rounded-full hover:bg-blue-700"
+                >
+                  {pathname === "/login" ? "Sign Up" : "Login"}
+                </Link>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-4 py-2 text-white transition-colors bg-red-500 rounded-full hover:bg-red-600"
+                >
+                  Logout
+                </button>
+              ))}
+          </div>
         )}
-      </Navbar.Collapse>
-    </Navbar>
+      </nav>
+    </header>
   );
 }

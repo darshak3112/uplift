@@ -23,12 +23,14 @@ export default function RootLayout({ children }) {
         <StoreProvider>
           <FetchData />
           <HeaderComponent />
-          <NextTopLoader
-            showSpinner={true}
-            color="radial-gradient(circle at 10% 20%, rgb(99, 55, 255) 0%, rgb(39, 170, 255) 90%)"
-            speed={800}
-          />
-          {children}
+          <main className="pt-16"> {/* Add padding-top here */}
+            <NextTopLoader
+              showSpinner={true}
+              color="radial-gradient(circle at 10% 20%, rgb(99, 55, 255) 0%, rgb(39, 170, 255) 90%)"
+              speed={800}
+            />
+            {children}
+          </main>
           <FooterComponent />
           <Toaster position="top-center" />
         </StoreProvider>

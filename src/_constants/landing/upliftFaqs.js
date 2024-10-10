@@ -1,26 +1,27 @@
 export const upliftFaqs = [
   {
-    question: "What is Uplift?",
-    answer: "Uplift connects businesses with testers for valuable product/content feedback. Testers earn money for high-quality reviews."
+    question: "What is Uplift and how does it work?",
+    answer:
+      "Uplift is a collaborative testing platform that connects businesses with a diverse community of testers. It works by allowing companies to submit their products or content for testing, and then matching them with relevant testers who provide valuable feedback and insights.",
   },
   {
-    question: "How does Uplift work?",
-    answer: "Businesses create projects, define goals, and get matched with relevant testers. Testers provide feedback, businesses gain insights, and everyone wins!"
+    question: "How does Uplift ensure the quality of feedback?",
+    answer:
+      "Uplift uses advanced algorithms to match testers with relevant expertise to your specific project. We also have a rating system for testers, ensuring that only the most reliable and insightful contributors are selected for your tests.",
   },
   {
-    question: "What are the benefits of using Uplift?",
-    answer: "Businesses: Increased engagement, enhanced user experience, reduced development costs, improved ROI. Testers: Earn money, gain experience, contribute to innovation, join a passionate community."
+    question: "Can I target specific demographics for my tests?",
+    answer:
+      "Yes, Uplift allows you to define specific demographics, interests, and expertise levels for your target testers. This ensures that you receive feedback from the most relevant audience for your product or content.",
   },
   {
-    question: "Who can benefit from Uplift?",
-    answer: "Businesses of all sizes (startups, agencies, developers) and testers interested in tech, sharing opinions, and earning income."
+    question: "How quickly can I expect to receive results?",
+    answer:
+      "The timeline for results can vary depending on the complexity of your test and the number of testers involved. However, most clients start receiving feedback within 24-48 hours of launching their test.",
   },
   {
-    question: "How much does Uplift cost?",
-    answer: "We offer flexible pricing packages with a base fee and additional costs based on reviews and products tested. Contact us for a quote!"
+    question: "Is my data and intellectual property safe with Uplift?",
+    answer:
+      "Absolutely. We take data security and intellectual property protection very seriously. All testers sign NDAs, and we have robust security measures in place to protect your sensitive information.",
   },
-  {
-    question: "How do I get started?",
-    answer: "Visit our website! Businesses can sign up for a free trial, and testers can join the community."
-  }
 ];
