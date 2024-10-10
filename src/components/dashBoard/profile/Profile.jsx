@@ -1,19 +1,98 @@
-import React from "react";
-import { Card, Label, TextInput, Button, Checkbox } from "flowbite-react";
+import React, { useEffect, useState } from "react";
+import { Card, Label, TextInput, Button, Checkbox, Spinner } from "flowbite-react";
 import Image from "next/image";
+import { useAppSelector } from "@/_lib/store/hooks";
+import axios from "axios";
 
 export default function Profile() {
-  const userProfile = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "hddbxh20@gmail.com",
-    mobileNo: "1234566690",
-    gender: "Male",
-    role: "tester",
-    dob: "1990-01-01",
-    country: "India",
-    pincode: "0123",
+  const user = useAppSelector((state) => state.userInfo);
+
+  const [userProfile, setUserProfile] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobileNo: "",
+    gender: "",
+    role: "",
+    dob: "",
+    country: "",
+    pincode: "",
+    total_task: 0,
+  });
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProfile, setEditedProfile] = useState({});
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user.id || !user.role) {
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await axios.get(`/api/auth/profile?id=${user.id}&role=${user.role}`);
+        setUserProfile(response.data);
+        setEditedProfile(response.data);
+      } catch (error) {
+        setError(`Error fetching user profile: ${error.response?.data?.message || error.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user.id, user.role]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditedProfile(prev => ({ ...prev, [name]: value }));
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.patch('/api/auth/update-profile', {
+        userId: user.id,
+        role: user.role,
+        firstName: editedProfile.firstName,
+        lastName: editedProfile.lastName,
+        gender: editedProfile.gender,
+      });
+
+      setUserProfile(prev => ({ ...prev, ...response.data }));
+      setIsEditing(false);
+    } catch (error) {
+      setError(`Error updating profile: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <section className="flex justify-center items-center h-screen">
+        <Spinner size="xl" />
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="flex justify-center items-center h-screen">
+        <Card className="w-full max-w-lg">
+          <h5 className="text-2xl font-medium tracking-tight text-gray-900 mb-4">Error</h5>
+          <p className="text-red-500">{error}</p>
+        </Card>
+      </section>
+    );
+  }
 
   return (
     <section className="flex flex-col justify-center gap-24 px-5 py-8 md:flex-row md:px-14">
@@ -30,116 +109,22 @@ export default function Profile() {
             User Profile
           </h5>
         </div>
-        <form method="POST" className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4 md:flex-row">
-            <div className="w-full">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {Object.entries(userProfile).map(([key, value]) => (
+            <div key={key} className="w-full">
               <div className="block mb-2">
-                <Label htmlFor="firstName" value="First Name" />
+                <Label htmlFor={key} value={key.charAt(0).toUpperCase() + key.slice(1)} />
               </div>
               <TextInput
-                id="firstName"
+                id={key}
+                name={key}
                 type="text"
-                placeholder="John"
-                value={userProfile.firstName}
-                readOnly
+                value={editedProfile[key]}
+                onChange={handleInputChange}
                 className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
               />
             </div>
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="lastName" value="Last Name" />
-              </div>
-              <TextInput
-                id="lastName"
-                type="text"
-                placeholder="Doe"
-                value={userProfile.lastName}
-                readOnly
-                className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 md:flex-row">
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="email" value="Email" />
-              </div>
-              <TextInput
-                id="email"
-                type="email"
-                placeholder="name@company.com"
-                value={userProfile.email}
-                readOnly
-                className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="mobileNo" value="Mobile" />
-              </div>
-              <TextInput
-                id="mobileNo"
-                type="text"
-                placeholder="1234567890"
-                value={userProfile.mobileNo}
-                readOnly
-                className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 md:flex-row">
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="gender" value="Gender" />
-              </div>
-              <TextInput
-                id="gender"
-                type="text"
-                value={userProfile.gender}
-                readOnly
-                className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="dob" value="Date of Birth" />
-              </div>
-              <TextInput
-                id="dob"
-                type="text"
-                value={userProfile.dob}
-                readOnly
-                className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 md:flex-row">
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="country" value="Country" />
-              </div>
-              <TextInput
-                id="country"
-                type="text"
-                value={userProfile.country}
-                readOnly
-                className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-            <div className="w-full">
-              <div className="block mb-2">
-                <Label htmlFor="pincode" value="Pincode" />
-              </div>
-              <TextInput
-                id="pincode"
-                type="text"
-                placeholder="xxxxxx"
-                value={userProfile.pincode}
-                readOnly
-                className="text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
-              />
-            </div>
-          </div>
+          ))}
           <div className="flex flex-col gap-3 my-2">
             <div className="flex items-center gap-2">
               <Checkbox color="blue" checked disabled id="accept" />
@@ -155,9 +140,20 @@ export default function Profile() {
               </Label>
             </div>
           </div>
-          <Button type="submit" color="blue">
-            Save Changes
-          </Button>
+          {isEditing ? (
+            <div className="flex gap-2">
+              <Button type="submit" color="blue">
+                Save Changes
+              </Button>
+              <Button type="button" color="gray" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button type="button" color="blue" onClick={() => setIsEditing(true)}>
+              Edit Profile
+            </Button>
+          )}
         </form>
       </Card>
       <div className="items-center justify-center hidden md:flex">

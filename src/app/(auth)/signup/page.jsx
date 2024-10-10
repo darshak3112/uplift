@@ -15,6 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -49,6 +50,17 @@ export default function SignUp() {
       country: "",
     },
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   const isRoleSelected = watch("role");
 
@@ -141,10 +153,10 @@ export default function SignUp() {
           </div>
         </div>
         <form
-          method="POST"
-          className="flex flex-col gap-4"
-          onSubmit={handleSubmit(onSubmit)}
-        >
+            method="POST"
+            className="flex flex-col gap-4"
+            onSubmit={handleSubmit(onSubmit)}
+          >
           <div className="flex flex-col gap-4 md:flex-row">
             <div>
               <div className="block mb-2">
@@ -321,30 +333,43 @@ export default function SignUp() {
               <div className="block mb-2">
                 <Label htmlFor="password" value="Password" />
               </div>
-              <TextInput
-                id="password"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters",
-                  },
-                  maxLength: {
-                    value: 15, // Adjust max length as needed
-                    message: "Password cannot exceed 15 characters",
-                  },
-                  pattern: {
-                    value:
-                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                    message:
-                      "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.",
-                  },
-                })}
-                required
-              />
+              <div className="relative">
+                <TextInput
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="••••••••"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters",
+                    },
+                    maxLength: {
+                      value: 15,
+                      message: "Password cannot exceed 15 characters",
+                    },
+                    pattern: {
+                      value:
+                        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                      message:
+                        "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.",
+                    },
+                  })}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="text-gray-400" />
+                  ) : (
+                    <FaEye className="text-gray-400" />
+                  )}
+                </button>
+              </div>
               {errors?.password && (
                 <p className="mt-2 text-sm text-red-500 md:max-w-[10rem]">
                   {errors?.password?.message}
@@ -355,18 +380,31 @@ export default function SignUp() {
               <div className="block mb-2">
                 <Label htmlFor="cPassword" value="Confirm password" />
               </div>
-              <TextInput
-                id="cPassword"
-                type="password"
-                name="cPassword"
-                placeholder="••••••••"
-                {...register("cPassword", {
-                  required: "Confirm password is required",
-                  validate: (value) =>
-                    value === watch("password") || "Passwords do not match",
-                })}
-                required
-              />
+              <div className="relative">
+                <TextInput
+                  id="cPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="cPassword"
+                  placeholder="••••••••"
+                  {...register("cPassword", {
+                    required: "Confirm password is required",
+                    validate: (value) =>
+                      value === watch("password") || "Passwords do not match",
+                  })}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={toggleConfirmPasswordVisibility}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                >
+                  {showConfirmPassword ? (
+                    <FaEyeSlash className="text-gray-400" />
+                  ) : (
+                    <FaEye className="text-gray-400" />
+                  )}
+                </button>
+              </div>
               {errors?.cPassword && (
                 <p className="mt-2 text-sm text-red-500 md:max-w-[10rem]">
                   {errors?.cPassword?.message}
@@ -413,8 +451,8 @@ export default function SignUp() {
           <Button disabled={!isRoleSelected} type="submit" color={"blue"}>
             {loading ? <SpinnerComponent /> : "Create an account"}
           </Button>
-        </form>
-      </Card>
+          </form>
+        </Card>
       <div className="items-center justify-center hidden md:flex ">
         <Image
           className="w-[450px] h-[450px]"
@@ -424,6 +462,6 @@ export default function SignUp() {
           alt="human desk"
         />
       </div>
-    </section>
+      </section>
   );
 }

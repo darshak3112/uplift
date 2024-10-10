@@ -7,16 +7,16 @@ export default function PricingCard({
 }) {
   return (
     <div className="flex flex-col max-w-lg p-6 mx-auto text-center text-gray-900 bg-white border border-gray-100 rounded-lg shadow ">
-      <span className="bg-blue-200 -mt-4 w-fit text-blue-600 text-xs font-medium  px-2.5 py-0.5 rounded-full ">
+      <span className={` -mt-4 w-fit  text-xs font-medium  px-2.5 py-0.5 rounded-full ${color}`}>
         {bedge}
       </span>
-      <h3 className="my-4 text-4xl font-bold">{name}</h3>
+      <h3 className="my-4 text-3xxl font-bold">{name}</h3>
       <p className="font-light text-gray-500 sm:text-lg ">{description}</p>
 
       <div className="flex items-baseline justify-center my-8">
         <span className="mx-2 font-light text-gray-500 sm:text-lg">Starts</span>
 
-        <span className="mr-2 text-3xl font-bold">${price}</span>
+        <span className="mr-2 text-3xl font-semibold">${price}</span>
         <span className="text-gray-500 ">/month</span>
       </div>
 

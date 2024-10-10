@@ -5,15 +5,7 @@ import { useForm } from "react-hook-form";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import { addSurveyTask } from "@/_lib/store/features/creator/surveyTask/surveyTaskSlice";
 import { countries } from "@/_constants/shared/country";
-import {
-  Button,
-  Card,
-  Label,
-  TextInput,
-  HR,
-  Select,
-  Textarea,
-} from "flowbite-react";
+import { Button, Card, Label, TextInput, HR, Select, Textarea } from "flowbite-react";
 import Image from "next/image";
 import { SpinnerComponent } from "@/components/shared/spinner/Spinner";
 import toast from "react-hot-toast";
@@ -84,9 +76,9 @@ export default function SurveyForm({ setTaskCreated }) {
       const formData = {
         creator,
         ...data,
-        tester_no: Number(data.tester_no), // Convert tester_no to number
-        tester_age: Number(data.tester_age), // Convert tester_age to number
-        noOfQuestions:Number(data.noOfQuestions),
+        tester_no: Number(data.tester_no),
+        tester_age: Number(data.tester_age),
+        noOfQuestions: Number(data.noOfQuestions),
       };
       setTimeout(() => {
         dispatch(addSurveyTask(formData));
@@ -142,46 +134,49 @@ export default function SurveyForm({ setTaskCreated }) {
   );
 
   return (
-    <section className="flex justify-center gap-24 px-5 py-8 md:px-14">
-      <Card className="max-w-lg">
-        <div className="flex flex-col items-center mb-4">
-          <h5 className="text-2xl font-bold tracking-tight text-gray-900">
-            Survey Task
-          </h5>
-        </div>
-
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {renderFormField("Task Name", "heading", "text")}
-            {renderFormField("No of Testers", "tester_no", "number")}
-            {renderFormField("No of Questions", "noOfQuestions", "number", { max: 20, min: 3 })}
-            {renderFormField("Min age of Testers", "tester_age", "select", Array.from({ length: MAX_AGE - MIN_AGE }, (_, i) => i + MIN_AGE))}
-            {renderFormField("Gender", "tester_gender", "select", GENDER_OPTIONS)}
-            {renderFormField("Select your country", "country", "select", countries)}
+    <section className="flex flex-col md:flex-row justify-center gap-8 px-5 py-8 md:px-14">
+      {/* Main Survey Form */}
+      <div className="flex-1">
+        <Card>
+          <div className="flex flex-col items-center mb-4">
+            <h5 className="text-2xl font-bold tracking-tight text-gray-900">
+              Survey Task
+            </h5>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {renderFormField("Starting Date", "post_date", "date")}
-            {renderFormField("Ending Date", "end_date", "date")}
-          </div>
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {renderFormField("Task Name", "heading", "text")}
+              {renderFormField("No of Testers", "tester_no", "number")}
+              {renderFormField("No of Questions", "noOfQuestions", "number", { max: 20, min: 3 })}
+              {renderFormField("Min age of Testers", "tester_age", "select", Array.from({ length: MAX_AGE - MIN_AGE }, (_, i) => i + MIN_AGE))}
+              {renderFormField("Gender", "tester_gender", "select", GENDER_OPTIONS)}
+              {renderFormField("Select your country", "country", "select", countries)}
+            </div>
 
-          {renderFormField("Instruction", "instruction", "textarea")}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {renderFormField("Starting Date", "post_date", "date")}
+              {renderFormField("Ending Date", "end_date", "date")}
+            </div>
 
-          {errorMessage && (
-            <p className="text-base font-normal text-red-500 text-center">
-              {errorMessage}
-            </p>
-          )}
+            {renderFormField("Instruction", "instruction", "textarea")}
 
-          <HR />
+            {errorMessage && (
+              <p className="text-base font-normal text-red-500 text-center">
+                {errorMessage}
+              </p>
+            )}
 
-          <Button type="submit" color="blue">
-            {loading ? <SpinnerComponent /> : "Next"}
-          </Button>
-        </form>
-      </Card>
+            <HR />
 
-      <div className="flex flex-col items-center">
+            <Button type="submit" color="blue">
+              {loading ? <SpinnerComponent /> : "Next"}
+            </Button>
+          </form>
+        </Card>
+      </div>
+      {/* Pricing Card and TaskMan Image */}
+      <div className="flex flex-col items-center md:w-1/3">
         <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
           <h5 className="text-xl font-bold text-gray-900 mb-4">Pricing Details</h5>
           <div className="space-y-2">
@@ -208,15 +203,17 @@ export default function SurveyForm({ setTaskCreated }) {
             </div>
           </div>
         </div>
-        <Image
-          className="mt-8"
-          src="/images/taskMan.png"
-          width={450}
-          height={400}
-          alt="human desk"
-        />
-      </div>
 
+        {/* TaskMan Image */}
+        <div className="hidden lg:block mt-4 md:mt-8">
+          <Image
+            src="/images/taskMan.png"
+            width={450}
+            height={400}
+            alt="human desk"
+          />
+        </div>
+      </div>
     </section>
   );
 }
