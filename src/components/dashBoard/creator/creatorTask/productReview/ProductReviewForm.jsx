@@ -96,14 +96,12 @@ export default function ProductReviewForm({ setTaskCreated }) {
       } else if (post_date > endDate) {
         setErrorMessage("Starting Date cannot be after Ending Date");
         setLoading(false);
-      } else if ((endDate - post_date) / (1000 * 60 * 60 * 24) < 18) {
-        setErrorMessage(
-          "The difference between the Starting Date and Ending Date must be at least 14 days."
-        );
-        setLoading(false);
       } else {
         const dataToSend = { creator, ...formData };
-        const response = await axios.post("/api/task/marketing/addtask", dataToSend);
+        const response = await axios.post(
+          "/api/task/marketing/addtask",
+          dataToSend
+        );
 
         if (response.status === 200) {
           toast.success("Task created successfully.");
@@ -159,7 +157,10 @@ export default function ProductReviewForm({ setTaskCreated }) {
                 <TextInput
                   id="tester_no"
                   type="number"
-                  {...register("tester_no", { required: "No. of testers is required", min: 20 })}
+                  {...register("tester_no", {
+                    required: "No. of testers is required",
+                    min: 20,
+                  })}
                   required
                 />
               </div>
@@ -186,7 +187,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
                 <Label htmlFor="tester_gender" value="Gender" />
                 <Select
                   id="tester_gender"
-                  {...register("tester_gender", { required: "Select tester gender" })}
+                  {...register("tester_gender", {
+                    required: "Select tester gender",
+                  })}
                   required
                 >
                   <option value="">Select tester gender</option>
@@ -222,7 +225,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
                   type="date"
                   id="post_date"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                  {...register("post_date", { required: "Starting Date is required" })}
+                  {...register("post_date", {
+                    required: "Starting Date is required",
+                  })}
                   required
                 />
               </div>
@@ -232,7 +237,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
                   type="date"
                   id="end_date"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                  {...register("end_date", { required: "Ending Date is required" })}
+                  {...register("end_date", {
+                    required: "Ending Date is required",
+                  })}
                   required
                 />
               </div>
@@ -244,7 +251,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
               <Textarea
                 id="instruction"
                 placeholder="Enter instructions..."
-                {...register("instruction", { required: "Instruction is required" })}
+                {...register("instruction", {
+                  required: "Instruction is required",
+                })}
                 required
                 rows={3}
               />
@@ -257,7 +266,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
                 id="product_link"
                 type="url"
                 placeholder="Enter product link"
-                {...register("product_link", { required: "Product link is required" })}
+                {...register("product_link", {
+                  required: "Product link is required",
+                })}
                 required
               />
             </div>
@@ -271,7 +282,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
                   type="number"
                   step="0.01"
                   placeholder="Enter product price"
-                  {...register("product_price", { required: "Product price is required" })}
+                  {...register("product_price", {
+                    required: "Product price is required",
+                  })}
                   required
                 />
               </div>
@@ -283,7 +296,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
                   min="0"
                   max="100"
                   placeholder="Enter refund percentage"
-                  {...register("refund_percentage", { required: "Refund percentage is required" })}
+                  {...register("refund_percentage", {
+                    required: "Refund percentage is required",
+                  })}
                   required
                 />
               </div>
@@ -295,7 +310,9 @@ export default function ProductReviewForm({ setTaskCreated }) {
               <Textarea
                 id="product_details"
                 placeholder="Enter product details..."
-                {...register("product_details", { required: "Product details are required" })}
+                {...register("product_details", {
+                  required: "Product details are required",
+                })}
                 required
                 rows={3}
               />
@@ -315,8 +332,10 @@ export default function ProductReviewForm({ setTaskCreated }) {
         </Card>
 
         <div className="flex flex-col items-center">
-          <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
-            <h5 className="text-xl font-bold text-gray-900 mb-4">Pricing Details</h5>
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+            <h5 className="mb-4 text-xl font-bold text-gray-900">
+              Pricing Details
+            </h5>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Number of Testers:</span>
@@ -333,7 +352,13 @@ export default function ProductReviewForm({ setTaskCreated }) {
               <hr className="my-2" />
               <div className="flex justify-between font-bold">
                 <span>Reward per Tester:</span>
-                <span>₹{(pricingCalculation.finalPrice / pricingCalculation.numTesters).toFixed(2)}</span>
+                <span>
+                  ₹
+                  {(
+                    pricingCalculation.finalPrice /
+                    pricingCalculation.numTesters
+                  ).toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between font-bold">
                 <span>Final Price deducted from wallet:</span>

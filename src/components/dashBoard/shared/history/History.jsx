@@ -57,14 +57,18 @@ export default function HistoryUser() {
   const filteredTasks = historyData.history
     .filter((task) => {
       if (activeTab === "analytics") {
-        // Only show closed tasks in analytics and exclude tasks of type "app"
+        // Only show closed tasks in analytics and exclude tasks of type "app" or "marketing"
         return (
           task.status?.toLowerCase() === "closed" &&
-          !task.type?.toLowerCase().includes("app")
+          !task.type?.toLowerCase().includes("app") &&
+          !task.type?.toLowerCase().includes("marketing")
         );
       } else if (activeTab === "result-creator") {
-        // Only show closed tasks in analytics and exclude tasks of type "app"
-        return task.type?.toLowerCase().includes("app");
+        // Show tasks of type "app" or "marketing"
+        return (
+          task.type?.toLowerCase().includes("app") ||
+          task.type?.toLowerCase().includes("marketing")
+        );
       }
       // For other tabs, return all tasks
       return true;
@@ -81,7 +85,9 @@ export default function HistoryUser() {
           (normalizedTaskType.includes("youtube") &&
             normalizedFilter === "youtube") ||
           (normalizedTaskType.includes("survey") &&
-            normalizedFilter === "survey")
+            normalizedFilter === "survey") ||
+          (normalizedTaskType.includes("marketing") &&
+            normalizedFilter === "marketing")
         );
       }
       // If no filter is selected, return all tasks
@@ -163,7 +169,7 @@ export default function HistoryUser() {
             <option value="survey">Survey</option>
             <option value="youtube">YouTube</option>
             <option value="app">App</option>
-            <option value="product">Product</option>
+            <option value="marketing">Marketing</option>
           </select>
           <select
             className="p-2 border border-gray-300 rounded-md"

@@ -12,6 +12,8 @@ export function OnGoingTaskCard({ task }) {
         return "📋";
       case "youtubetask":
         return "🎥";
+      case "marketingtask":
+        return "📢";
       default:
         return "❓";
     }
@@ -26,13 +28,16 @@ export function OnGoingTaskCard({ task }) {
   };
 
   const handleCardClick = () => {
-    if (role === "creator" && task.type==="AppTask") {
+    if (
+      role === "creator" &&
+      (task.type === "AppTask" || task.type === "MarketingTask")
+    ) {
       router.push(
-        `/dashboard?activeTab=ongoing-task&taskId=${task._id}&type=AppliedList`
+        `/dashboard?activeTab=ongoing-task&taskId=${task._id}&type=AppliedList&taskType=${task.type}`
       );
     } else if (role === "tester") {
       router.push(
-        `/dashboard?activeTab=ongoing-task&taskId=${task._id}&type=AppTaskReview`
+        `/dashboard?activeTab=ongoing-task&taskId=${task._id}&type=${task.type}Review`
       );
     }
   };

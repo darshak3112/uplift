@@ -11,7 +11,7 @@ export function HistoryCard({ task }) {
       const url = `/dashboard?activeTab=analytics&id=${task?.id}&type=${task?.type}`;
       router.push(url);
     } else if (activeTab === "review-creator") {
-      const url = `?activeTab=review-creator&taskId=${task.id}&type=AppTask`;
+      const url = `?activeTab=review-creator&taskId=${task.id}&type=${task.type}`;
       router.push(url);
     }
   };
@@ -35,6 +35,8 @@ export function HistoryCard({ task }) {
         return "🎥";
       case "apptask":
         return "📱";
+      case "marketingtask":
+        return "📢";
       default:
         return "❓";
     }

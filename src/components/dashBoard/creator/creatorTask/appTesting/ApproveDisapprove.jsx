@@ -34,6 +34,7 @@ export default function ApproveDisapprove() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const taskId = searchParams.get("taskId");
+  const taskType = searchParams.get("taskType");
   const creatorId = useAppSelector((state) => state.userInfo.id);
 
   useEffect(() => {
@@ -43,15 +44,26 @@ export default function ApproveDisapprove() {
   useEffect(() => {
     filterTesters();
     console.log(testerDetails);
-
   }, [searchTerm, ageFilter, testerDetails]);
 
   const fetchTesterList = async () => {
     try {
-      const response = await axios.post("/api/task/app/applied-tester-list", {
+      let endpoint = "";
+
+      if (taskType === "AppTask") {
+        endpoint = "/api/task/app/applied-tester-list";
+      } else if (taskType === "MarketingTask") {
+        endpoint = "/api/task/marketing/applied-tester-list";
+      } else {
+        // Handle other task types or throw an error
+        throw new Error("Invalid task type");
+      }
+
+      const response = await axios.post(endpoint, {
         taskId,
         creatorId,
       });
+
       setTesterDetails(response.data.testerDetails);
       setLoading(false);
     } catch (error) {
@@ -103,11 +115,17 @@ export default function ApproveDisapprove() {
     setLoading(true);
 
     try {
-      console.log(testerDetails);
-      console.log("tester id : ",testerId);
-      console.log("task id : ", taskId);
-      console.log("creator id : ",creatorId);
-      const response = await axios.post(`/api/task/app/${action}`, {
+      let endpoint = "";
+
+      if (taskType === "AppTask") {
+        endpoint = `/api/task/app/${action}`;
+      } else if (taskType === "MarketingTask") {
+        endpoint = `/api/task/marketing/${action}`;
+      } else {
+        // Handle other task types or throw an error
+        throw new Error("Invalid task type");
+      }
+      const response = await axios.post(endpoint, {
         testerId,
         taskId,
         creatorId,

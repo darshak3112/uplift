@@ -84,6 +84,12 @@ export async function POST(req) {
     // Add tester to applied_testers
     specificTask.applied_testers.push(testerId);
     await specificTask.save({ session });
+    if(!taskExists.tester_ids)
+    {
+      taskExists.tester_ids = [];
+    }
+    taskExists.tester_ids.push(testerId);
+    await taskExists.save({ session });
 
     // Add task to tester's task history
     tester.taskHistory.push({

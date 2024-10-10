@@ -20,6 +20,7 @@ import YouTubeResponse from "@/components/dashBoard/tester/response/youtube/YouT
 import ApproveDisapprove from "@/components/dashBoard/creator/creatorTask/appTesting/ApproveDisapprove";
 import AppResponse from "@/components/dashBoard/tester/response/app/AppResponse";
 import AppTaskReviews from "@/components/dashBoard/creator/review/AppTaskReviews";
+import MarketingResponse from "@/components/dashBoard/tester/response/marketing/MarketingResponse";
 
 const componentsMap = {
   "available-task": AvailableTask,
@@ -38,6 +39,7 @@ const componentsMap = {
   AppTask: AppTaskReviews,
   AppliedList: ApproveDisapprove,
   AppTaskReview: AppResponse,
+  MarketingTaskReview: MarketingResponse,
 };
 
 export default function Dashboard() {
