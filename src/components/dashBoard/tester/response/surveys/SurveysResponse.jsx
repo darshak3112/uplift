@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import {
   addResponseTasks,
@@ -78,20 +78,33 @@ const SurveysResponse = () => {
     setVerificationQuestion(randomQuestion);
     setVerificationStep(true);
   };
-  
-  const handleVerificationSubmit = () => {
 
+  const handleVerificationSubmit = () => {
     const originalAnswer = responseTaskData.find(
       (response) => response.questionId === verificationQuestion.questionId
     )?.answer;
-    
+
     if (verificationAnswer === originalAnswer) {
       submitFinalTask();
     } else {
+      rejectSurvey();
+    }
+  };
+
+  // Function to reject the survey and call the API
+  const rejectSurvey = async () => {
+    try {
+      await axios.post("/api/task/survey/taskResponse", {
+        taskId,
+        testerId,
+        status: "rejected",
+      });
       toast.error(
-        "Verification failed. Your responses don't match. Please try again."
+        "Verification failed. Your responses don't match. Survey rejected."
       );
       router.push("dashboard?activeTab=available-task");
+    } catch (error) {
+      console.error("Error rejecting survey:", error);
     }
   };
 
@@ -127,6 +140,31 @@ const SurveysResponse = () => {
   };
 
   const progressPercentage = (questionNo / noOfQuestions) * 100;
+
+  // Detect back button and reload events
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (verificationStep) {
+        event.preventDefault();
+        event.returnValue = ""; // Required for some browsers
+        rejectSurvey();
+      }
+    };
+
+    const handlePopState = () => {
+      if (verificationStep) {
+        rejectSurvey();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [verificationStep]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">

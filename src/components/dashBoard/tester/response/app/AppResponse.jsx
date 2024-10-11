@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Button, Card, Label, Textarea } from "flowbite-react";
-import { FaPaperPlane, FaSpinner } from "react-icons/fa";
+import { FaPaperPlane, FaSpinner, FaArrowLeft } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 import { useAppSelector } from "@/_lib/store/hooks";
 
@@ -64,6 +64,10 @@ const AppResponse = () => {
     }
   };
 
+  const handleBack = () => {
+    router.push("/dashboard?activeTab=available-task");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -76,9 +80,15 @@ const AppResponse = () => {
     <div className="container max-w-2xl p-4 mx-auto">
       <Toaster position="top-center" reverseOrder={false} />
       <Card>
-        <h2 className="m-auto mb-4 text-2xl font-bold text-gray-900">
-          Today&apos;s Feedback
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <Button color="light" onClick={handleBack}>
+            <FaArrowLeft className="mr-2" />
+            Back
+          </Button>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Today&apos;s Feedback
+          </h2>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="response" value="Your Response" />

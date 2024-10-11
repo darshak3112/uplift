@@ -33,7 +33,6 @@ const renderSurveyAnalytics = ({
   const answer = task.answers[currentIndex];
   const options = Object.keys(answer.answers);
   const optiontoprint = Object.values(answer.answers).map((option) => option.option);
-  console.log("optionstoprint", optiontoprint);
   const counts = options.map((option) => answer.answers[option].count);
   const barOptions = {
     chart: { type: "bar", height: 350 },
@@ -275,7 +274,6 @@ const AnalyticsData = () => {
           const data = await fetchAnalyticsData(id, type);
           if (data?.task) {
             dispatch(setAnalyticsData([{ task: data.task }]));
-            console.log(analyticsData);
           }
         }
         setIsLoading(false);

@@ -18,13 +18,14 @@ export async function POST(req) {
             );
         }
 
-        const { testerId, taskId , status } = reqBody;   
-
-        if (!testerId || !taskId) {
+        const { testerId, taskId, status } = reqBody;  
+        console.log(reqBody);
+        
+        if (!testerId || !taskId || !status) {
             await session.abortTransaction();
             session.endSession();
             return NextResponse.json(
-                { message: "Tester ID and Task ID are required", reqBody },
+                { message: "Tester ID and Task ID and Status are required", reqBody },
                 { status: 400 }
             );
         }

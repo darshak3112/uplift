@@ -63,13 +63,13 @@ export default function HistoryUser() {
           !task.type?.toLowerCase().includes("app") &&
           !task.type?.toLowerCase().includes("marketing")
         );
-      } else if (activeTab === "result-creator") {
+      } else if (activeTab === "review-creator") {
         // Show tasks of type "app" or "marketing"
         return (
           task.type?.toLowerCase().includes("app") ||
           task.type?.toLowerCase().includes("marketing")
         );
-      }
+      } 
       // For other tabs, return all tasks
       return true;
     })

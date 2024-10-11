@@ -153,13 +153,13 @@ async function processSurveyAnalytics(task, responseModel, session) {
       answers:
         answer_type === "multiple_choice"
           ? options.map((option) => ({
-              option,
-              count: results[questionId][option] || 0,
-            }))
+            option,
+            count: results[questionId][option] || 0,
+          }))
           : Object.entries(results[questionId]).map(([answer, count]) => ({
-              answer,
-              count,
-            })),
+            answer,
+            count,
+          })),
     })
   );
 }
@@ -204,6 +204,7 @@ async function processAppAnalytics(task, responseModel, session, testerModel) {
 
   const detailedResponses = taskResponses.flatMap((response) =>
     response.responses.map((r) => ({
+      testerId: response.testerId._id, // Include the testerId
       testerName: `${response.testerId.firstName} ${response.testerId.lastName}`,
       email: response.testerId.email,
       text: r.text,
@@ -220,6 +221,7 @@ async function processAppAnalytics(task, responseModel, session, testerModel) {
 async function processMarketingAnalytics(task, responseModel, session) {
   const taskResponses = await responseModel
     .find({ taskId: task._id })
+    .populate('testerId', 'firstName lastName') // Populate tester information
     .session(session);
 
   const orderDates = taskResponses.map((response) => response.order.orderDate);
@@ -239,9 +241,12 @@ async function processMarketingAnalytics(task, responseModel, session) {
     reviewLink: response.liveReview.reviewLink,
     reviewImage: response.liveReview.reviewImage,
     submittedAt: response.liveReview.submittedAt,
+    testerName: `${response.testerId.firstName} ${response.testerId.lastName}`,
+    testerId: response.testerId._id, // Include the testerId
   }));
 
   return {
+    taskId: task._id,
     totalOrders,
     averageTimeBetweenOrderAndReview,
     detailedResponses,
