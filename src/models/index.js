@@ -12,6 +12,7 @@ import YoutubeResponse from './response/youtubeResponseModel.js';
 import Admin from './user/adminModel.js';
 import Wallet from './wallet/walletModel.js';
 import Transaction from './wallet/transectionModel.js';
+import Ticket from './ticket/ticketModel.js';
 
 export {
   Creator,
@@ -27,5 +28,6 @@ export {
   YoutubeResponse,
   Admin,
   Wallet,
-  Transaction
+  Transaction,
+  Ticket
 };

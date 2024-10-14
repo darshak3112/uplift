@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import { addYouTubeTask } from "@/_lib/store/features/creator/youTubeTask/youTubeTaskSlice";
 
-const PLATFORM_FEE_PERCENTAGE = 0.1;
+const PLATFORM_FEE_PERCENTAGE = 0.05;
 const PRICE_PER_THUMBNAIL = 5; // Assuming a price per thumbnail
 
 export default function YouTubeForm({ setTaskCreated }) {
@@ -56,7 +56,7 @@ export default function YouTubeForm({ setTaskCreated }) {
     const numThumbnails = parseInt(noOfThumbNails) || 0;
     const totalPrice = PRICE_PER_THUMBNAIL * numThumbnails * numTesters;
     const platformFee = totalPrice * PLATFORM_FEE_PERCENTAGE;
-    const finalPrice = totalPrice - platformFee;
+    const finalPrice = totalPrice/numTesters + platformFee;
 
     return {
       numTesters,
@@ -326,17 +326,17 @@ export default function YouTubeForm({ setTaskCreated }) {
                 <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Platform Fee (10%):</span>
+                <span>Platform Fee (5%):</span>
                 <span>₹{pricingCalculation.platformFee.toFixed(2)}</span>
               </div>
               <hr className="my-2" />
               <div className="flex justify-between font-bold">
-                <span>Reward per Tester:</span>
+                <span>Final Price deducted from wallet:</span>
                 <span>₹{(pricingCalculation.finalPrice / pricingCalculation.numTesters).toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold">
-                <span>Final Price deducted from wallet:</span>
-                <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
+                <span>Reward per Tester:</span>
+                <span>₹{pricingCalculation.totalPrice.toFixed(2)/pricingCalculation.numTesters}</span>
               </div>
             </div>
             </div>
