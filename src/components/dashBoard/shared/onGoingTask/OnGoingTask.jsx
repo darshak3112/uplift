@@ -57,9 +57,12 @@ export default function OnGoingTask() {
 
         return (
           (normalizedTaskType.includes("app") && normalizedFilter === "app") ||
-          (normalizedTaskType.includes("youtube") && normalizedFilter === "youtube") ||
-          (normalizedTaskType.includes("survey") && normalizedFilter === "survey") ||
-          (normalizedTaskType.includes("marketing") && normalizedFilter === "marketing")
+          (normalizedTaskType.includes("youtube") &&
+            normalizedFilter === "youtube") ||
+          (normalizedTaskType.includes("survey") &&
+            normalizedFilter === "survey") ||
+          (normalizedTaskType.includes("marketing") &&
+            normalizedFilter === "marketing")
         );
       }
       return true;
@@ -82,12 +85,25 @@ export default function OnGoingTask() {
         height={300}
         className="mb-4"
       />
-      <p className="text-xl font-semibold text-gray-600">No ongoing tasks found</p>
+      <p className="text-xl font-semibold text-gray-600">
+        No ongoing tasks found
+      </p>
     </div>
   );
 
   if (loading) {
-    return <div className="py-10 text-center text-gray-600">Loading ongoing tasks...</div>;
+    return (
+      <div className="grid grid-cols-1 gap-6 p-8 sm:grid-cols-2 lg:grid-cols-3">
+        {Array(6)
+          .fill("")
+          .map((_, index) => (
+            <div
+              key={index}
+              className="h-64 bg-gray-200 animate-pulse rounded-xl"
+            ></div>
+          ))}
+      </div>
+    );
   }
 
   if (error) {

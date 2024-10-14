@@ -15,13 +15,16 @@ import {
   FaSearch,
   FaFilter,
   FaArrowLeft,
+  FaDownload,
 } from "react-icons/fa";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppSelector } from "@/_lib/store/hooks";
-import toast from "react-hot-toast"; // Import react-hot-toast
+import toast from "react-hot-toast";
 
 export default function ApproveDisapprove() {
   const [testerDetails, setTesterDetails] = useState([]);
+  const [selectedTesterDetails, setSelectedTesterDetails] = useState([]);
+  const [rejectedTesterDetails, setRejectedTesterDetails] = useState([]);
   const [filteredTesters, setFilteredTesters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortColumn, setSortColumn] = useState("");
@@ -30,6 +33,7 @@ export default function ApproveDisapprove() {
   const [ageFilter, setAgeFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalAction, setModalAction] = useState({ type: "", testerId: "" });
+  const [activeView, setActiveView] = useState("applied");
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -43,18 +47,39 @@ export default function ApproveDisapprove() {
 
   useEffect(() => {
     filterTesters();
-  }, [searchTerm, ageFilter, testerDetails]);
+  }, [
+    searchTerm,
+    ageFilter,
+    testerDetails,
+    selectedTesterDetails,
+    rejectedTesterDetails,
+    activeView,
+  ]);
 
   const fetchTesterList = async () => {
     try {
       let endpoint = "";
+      const responseApprovedDisapproved = await axios.post(
+        "/api/task/approved-disapproved",
+        {
+          taskId,
+          taskType,
+        }
+      );
+
+      setSelectedTesterDetails(
+        responseApprovedDisapproved.data.selectedTesters
+      );
+
+      setRejectedTesterDetails(
+        responseApprovedDisapproved.data.rejectedTesters
+      );
 
       if (taskType === "AppTask") {
         endpoint = "/api/task/app/applied-tester-list";
       } else if (taskType === "MarketingTask") {
         endpoint = "/api/task/marketing/applied-tester-list";
       } else {
-        // Handle other task types or throw an error
         throw new Error("Invalid task type");
       }
 
@@ -73,7 +98,22 @@ export default function ApproveDisapprove() {
   };
 
   const filterTesters = () => {
-    let filtered = testerDetails.filter(
+    let dataToFilter = [];
+    switch (activeView) {
+      case "applied":
+        dataToFilter = testerDetails;
+        break;
+      case "accepted":
+        dataToFilter = selectedTesterDetails;
+        break;
+      case "rejected":
+        dataToFilter = rejectedTesterDetails;
+        break;
+      default:
+        dataToFilter = testerDetails;
+    }
+
+    let filtered = dataToFilter.filter(
       (tester) =>
         tester.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tester.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -121,16 +161,15 @@ export default function ApproveDisapprove() {
       } else if (taskType === "MarketingTask") {
         endpoint = `/api/task/marketing/${action}`;
       } else {
-        // Handle other task types or throw an error
         throw new Error("Invalid task type");
       }
-      const response = await axios.post(endpoint, {
+      const responseApplied = await axios.post(endpoint, {
         testerId,
         taskId,
         creatorId,
       });
 
-      if (response.status === 200) {
+      if (responseApplied.status === 200) {
         await fetchTesterList();
         toast.success(
           `Tester ${
@@ -152,6 +191,28 @@ export default function ApproveDisapprove() {
     router.back();
   };
 
+  const downloadCSV = () => {
+    const headers = ["Name", "Email", "Age"];
+    const csvContent = [
+      headers.join(","),
+      ...filteredTesters.map((tester) =>
+        [tester.name, tester.email, tester.age].join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${activeView}_testers.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -170,9 +231,16 @@ export default function ApproveDisapprove() {
           <FaArrowLeft className="mr-2" /> Back
         </Button>
       </div>
-
       <div className="flex flex-wrap items-center justify-between mb-4 space-y-2 md:space-y-0">
         <div className="flex items-center w-full space-x-2 md:w-auto">
+          <Select
+            value={activeView}
+            onChange={(e) => setActiveView(e.target.value)}
+          >
+            <option value="applied">Applied Testers</option>
+            <option value="accepted">Accepted Testers</option>
+            <option value="rejected">Rejected Testers</option>
+          </Select>
           <TextInput
             type="text"
             placeholder="Search by name or email"
@@ -185,7 +253,7 @@ export default function ApproveDisapprove() {
             onChange={(e) => setAgeFilter(e.target.value)}
           >
             <option value="">All Ages</option>
-            {[...new Set(testerDetails.map((t) => t.age))]
+            {[...new Set(filteredTesters.map((t) => t.age))]
               .sort((a, b) => a - b)
               .map((age) => (
                 <option key={age} value={age}>
@@ -195,9 +263,11 @@ export default function ApproveDisapprove() {
           </Select>
         </div>
         <div className="flex items-center space-x-2">
-          <FaFilter className="text-gray-500" />
+          <Button color="light" onClick={downloadCSV}>
+            <FaDownload className="mr-2" /> Download CSV
+          </Button>
           <span className="text-sm text-gray-600">
-            Showing {filteredTesters.length} of {testerDetails.length} testers
+            Showing {filteredTesters.length} testers
           </span>
         </div>
       </div>
@@ -205,7 +275,12 @@ export default function ApproveDisapprove() {
       <div className="overflow-x-auto">
         <Table hoverable className="w-full">
           <Table.Head>
-            {["Name", "Email", "Age", "Actions"].map((header) => (
+            {[
+              "Name",
+              "Email",
+              "Age",
+              ...(activeView === "applied" ? ["Actions"] : []),
+            ].map((header) => (
               <Table.HeadCell
                 key={header}
                 onClick={() => handleSort(header.toLowerCase())}
@@ -235,28 +310,30 @@ export default function ApproveDisapprove() {
                 </Table.Cell>
                 <Table.Cell>{tester.email}</Table.Cell>
                 <Table.Cell>{tester.age}</Table.Cell>
-                <Table.Cell>
-                  <div className="flex space-x-2">
-                    <Button
-                      color="success"
-                      size="sm"
-                      onClick={() =>
-                        handleApproveDisapprove(tester.testerId, "approve")
-                      }
-                    >
-                      <FaCheck className="mr-2" /> Approve
-                    </Button>
-                    <Button
-                      color="failure"
-                      size="sm"
-                      onClick={() =>
-                        handleApproveDisapprove(tester.testerId, "disapprove")
-                      }
-                    >
-                      <FaTimes className="mr-2" /> Disapprove
-                    </Button>
-                  </div>
-                </Table.Cell>
+                {activeView === "applied" && (
+                  <Table.Cell>
+                    <div className="flex space-x-2">
+                      <Button
+                        color="success"
+                        size="sm"
+                        onClick={() =>
+                          handleApproveDisapprove(tester.testerId, "approve")
+                        }
+                      >
+                        <FaCheck className="mr-2" /> Approve
+                      </Button>
+                      <Button
+                        color="failure"
+                        size="sm"
+                        onClick={() =>
+                          handleApproveDisapprove(tester.testerId, "disapprove")
+                        }
+                      >
+                        <FaTimes className="mr-2" /> Disapprove
+                      </Button>
+                    </div>
+                  </Table.Cell>
+                )}
               </Table.Row>
             ))}
           </Table.Body>

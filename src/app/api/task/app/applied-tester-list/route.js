@@ -24,7 +24,6 @@ export async function POST(req) {
     }
 
     const { taskId, creatorId, page, limit } = parsedData.data;
-
     const creator = await Creator.findById(creatorId).session(session);
     if (!creator) {
       return NextResponse.json(
