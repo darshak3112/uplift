@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Creator, Task, MarketingTask } from "@/models";
 import { NextResponse } from "next/server";
+import { debitWallet } from "@/_lib/walletService";
 
 export async function POST(req) {
   let session;
@@ -99,6 +100,7 @@ export async function POST(req) {
 
     await session.commitTransaction();
 
+    debitWallet(creator, ((marketingTask.refund_percentage/100) *(task.tester_no)*marketingTask.product_price) + ((5/100)*marketingTask.product_price*task.tester_no),task._id,session);
     return NextResponse.json(
       { message: "Marketing task added successfully", task },
       { status: 200 }

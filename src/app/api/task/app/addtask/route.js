@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Creator, Task, AppTask } from "@/models";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { debitWallet } from "@/_lib/walletService";
 
 // Define the schema for creating an App Task
 const createAppTaskSchema = z.object({
@@ -102,6 +103,7 @@ export async function POST(req) {
     await session.commitTransaction();
     session.endSession();
 
+    debitWallet(creator, 500 * task.tester_no,task._id,session);
     return NextResponse.json(
       {
         message: "Task added successfully",

@@ -103,7 +103,7 @@ export async function POST(req) {
       });
       await creatorExists.save({ session });
 
-      const walletDebit = await debitWallet(creator, tester_no * 5, task._id);
+      const walletDebit = await debitWallet(creator, tester_no * 5, task._id,session);
       console.log("walletDebit", walletDebit);
       if (!walletDebit.success) {
         await session.abortTransaction();

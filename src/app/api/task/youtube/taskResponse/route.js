@@ -103,7 +103,7 @@ export async function POST(req) {
     }
 
     // Credit wallet within the session
-    const resultwallet = await creditWallet(testerId, 4, task._id);
+    const resultwallet = await creditWallet(testerId, 4, task._id,session);
     if (resultwallet.success === false) {
       await session.abortTransaction(); // Abort if wallet credit fails
       return NextResponse.json(

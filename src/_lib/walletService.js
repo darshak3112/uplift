@@ -44,10 +44,8 @@ export async function getWallet(userId) {
 }
 const MAX_RETRIES = 3;
 
-export async function debitWallet(userId, amount, taskId) {
+export async function debitWallet(userId, amount, taskId , session) {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
       const wallet = await Wallet.findOne({ user: userId }).session(session);
 
@@ -86,9 +84,6 @@ export async function debitWallet(userId, amount, taskId) {
       });
       await transaction.save({ session });
 
-      await session.commitTransaction();
-      session.endSession();
-
       return {
         success: true,
         message: "Wallet debited successfully",
@@ -111,10 +106,8 @@ export async function debitWallet(userId, amount, taskId) {
   }
 }
 
-export async function creditWallet(userId, amount, taskId) {
+export async function creditWallet(userId, amount, taskId , session) {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
       const wallet = await Wallet.findOne({ user: userId }).session(session);
 
@@ -151,9 +144,6 @@ export async function creditWallet(userId, amount, taskId) {
         status: "Completed",
       });
       await transaction.save({ session });
-
-      await session.commitTransaction();
-      session.endSession();
 
       return {
         success: true,

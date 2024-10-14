@@ -18,7 +18,6 @@ const transactionSchema = new mongoose.Schema(
     },
     taskId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: "Task",
     },
     status: {
