@@ -21,8 +21,6 @@ export async function POST(req) {
   session.startTransaction();
 
   try {
-
-
     const { taskId, testerId, response } = await req.json();
 
     const task = await Task.findById(taskId)
@@ -93,16 +91,16 @@ export async function POST(req) {
       await task.save({ session });
     }
 
-    // const result = await creditWallet(testerId, response.length * 0.9, task._id);
+    const result = await creditWallet(testerId, response.length * 0.9, task._id,session);
 
-    // if (result.success === false) {
-    //   await session.abortTransaction();
-    //   session.endSession();
-    //   return NextResponse.json(
-    //     { message: result.message },
-    //     { status: 500 }
-    //   );
-    // }
+    if (result.success === false) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { message: result.message },
+        { status: 500 }
+      );
+    }
     await session.commitTransaction();
     session.endSession();
 
@@ -113,7 +111,6 @@ export async function POST(req) {
       },
       { status: 201 }
     );
-
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

@@ -122,9 +122,7 @@ export async function POST(req) {
     });
     await creatorExists.save({ session });
 
-   
-
-    const walletDebit = await debitWallet(creator, tester_no*noOfQuestions , tempTask._id);
+    const walletDebit = await debitWallet(creator, tester_no*noOfQuestions , tempTask._id , session);
     if (!walletDebit.success) {
       return NextResponse.json(
         {

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
-import { Tester, Task, MarketingTask } from "@/models";
+import { Tester, Task, MarketingTask, AppTask } from "@/models";
 import { creditWallet } from "@/_lib/walletService";
 
 export async function POST(req) {
@@ -18,13 +18,13 @@ export async function POST(req) {
             );
         }
 
-        const { testerId, taskId, status } = reqBody;   
-        
-        if (!testerId || !taskId || !status) {
+        const { testerId, taskId, status } = reqBody;
+
+        if (!testerId || !taskId) {
             await session.abortTransaction();
             session.endSession();
             return NextResponse.json(
-                { message: "Tester ID and Task ID and Status are required", reqBody },
+                { message: "Tester ID and Task ID are required", reqBody },
                 { status: 400 }
             );
         }
@@ -60,11 +60,15 @@ export async function POST(req) {
         }
 
         if (status === "response-accepted") {
-           await Tester.updateOne(
+            await Tester.updateOne(
                 { _id: testerId, "taskHistory.taskId": taskId },
                 { $set: { "taskHistory.$.status": "success" } },
                 { session }
             );
+
+            // Ensure that creditWallet is awaited within the session
+            console.log(taskExists)
+            await creditWallet(testerId, (specificTask.refund_percentage / 100) * specificTask.product_price, taskExists._id, session);
         } else if (status === "response-rejected") {
             await Tester.updateOne(
                 { _id: testerId, "taskHistory.taskId": taskId },
@@ -73,6 +77,7 @@ export async function POST(req) {
             );
         }
 
+        // Commit transaction and ensure the function ends successfully here
         await session.commitTransaction();
         session.endSession();
 
@@ -82,8 +87,12 @@ export async function POST(req) {
         );
     } catch (error) {
         console.error(error);
-        await session.abortTransaction();
+
+        if (session.inTransaction()) {
+            await session.abortTransaction(); // Only abort if transaction is still in progress
+        }
         session.endSession();
+
         return NextResponse.json(
             { message: "Internal server error", error: error.message },
             { status: 500 }
