@@ -94,15 +94,23 @@ const SurveysResponse = () => {
   // Function to reject the survey and call the API
   const rejectSurvey = async () => {
     try {
-      await axios.post("/api/task/survey/taskResponse", {
-        taskId,
-        testerId,
-        status: "rejected",
-      });
-      toast.error(
-        "Verification failed. Your responses don't match. Survey rejected."
+      const surveyResponse = await axios.post(
+        "/api/task/survey/taskResponseReject",
+        {
+          taskId,
+          testerId,
+        }
       );
-      router.push("dashboard?activeTab=available-task");
+
+      if (surveyResponse.status === 201) {
+        dispatch(clearResponseTask());
+        dispatch(clearAvailableTask());
+        dispatch(clearHistoryUser());
+        toast.error(
+          "Verification failed. Your responses don't match. Survey rejected."
+        );
+        router.push("dashboard?activeTab=available-task");
+      }
     } catch (error) {
       console.error("Error rejecting survey:", error);
     }
@@ -112,12 +120,13 @@ const SurveysResponse = () => {
     setIsSubmitting(true);
     try {
       const surveyResponse = { taskId, testerId, response: responseTaskData };
+      console.log(surveyResponse);
       const response = await axios.post(
         "/api/task/survey/taskResponse",
         surveyResponse
       );
 
-      if (response.status === 201) {
+      if (surveyResponse.status === 201) {
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
         dispatch(clearHistoryUser());
