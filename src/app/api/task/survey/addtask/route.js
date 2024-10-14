@@ -55,6 +55,7 @@ export async function POST(req) {
     } = parsedData.data;
 
     const creatorExists = await Creator.findById(creator).session(session);
+    console.log(creator)
     if (!creatorExists) {
       await session.abortTransaction();
       session.endSession();

@@ -20,8 +20,7 @@ import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import axios from "axios";
 import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 
-const PLATFORM_FEE_PERCENTAGE = 0.1;
-const BASE_PRICE = 50; // Assuming a base price for product reviews
+const PLATFORM_FEE_PERCENTAGE = 0.05;
 
 export default function ProductReviewForm({ setTaskCreated }) {
   const tester_gender = ["Male", "Female", "Both"];
@@ -58,20 +57,30 @@ export default function ProductReviewForm({ setTaskCreated }) {
 
   const tester_no = watch("tester_no");
   const product_price = watch("product_price");
+  const refund_percentage = watch("refund_percentage");
 
   const pricingCalculation = useMemo(() => {
-    const numTesters = parseInt(tester_no) || 0;
+    // Use parseInt and parseFloat with fallbacks
+    const numTesters = parseInt(tester_no, 10) || 0; 
+    const refundPercentage = parseFloat(refund_percentage) || 0; 
     const productPrice = parseFloat(product_price) || 0;
-    const totalPrice = (BASE_PRICE + productPrice) * numTesters;
-    const platformFee = totalPrice * PLATFORM_FEE_PERCENTAGE;
-    const finalPrice = totalPrice - platformFee;
+
+    // Calculate total price
+    const refundAmount = (refundPercentage / 100) * productPrice * numTesters;
+    const platformCut = PLATFORM_FEE_PERCENTAGE * productPrice * numTesters;
+    const totalPrice = refundAmount + platformCut;
+    const platformFee = platformCut;
+    const finalPrice = totalPrice;
+
     return {
       numTesters,
       totalPrice,
       platformFee,
       finalPrice,
     };
-  }, [tester_no, product_price]);
+  }, [tester_no, product_price, refund_percentage]);
+
+
 
   const onSubmit = async (data, event) => {
     event.preventDefault();
@@ -340,29 +349,30 @@ export default function ProductReviewForm({ setTaskCreated }) {
                 <span>Number of Testers:</span>
                 <span>{pricingCalculation.numTesters}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Total Price:</span>
-                <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
-              </div>
+              {/* <div className="flex justify-between">
+                <span>Price of Product:</span>
+                <span>{pricingCalculation.productPrice > 0 && pricingCalculation.numTesters > 0 ? (pricingCalculation.productPrice / pricingCalculation.numTesters).toFixed(2) : "0.00"}</span>
+              </div> */}
               <div className="flex justify-between">
                 <span>Platform Fee (10%):</span>
                 <span>₹{pricingCalculation.platformFee.toFixed(2)}</span>
               </div>
               <hr className="my-2" />
               <div className="flex justify-between font-bold">
+                <span>Final Price deducted from wallet:</span>
+                <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold">
                 <span>Reward per Tester:</span>
                 <span>
                   ₹
                   {(
-                    pricingCalculation.finalPrice /
+                    (pricingCalculation.finalPrice-pricingCalculation.platformFee) /
                     pricingCalculation.numTesters
                   ).toFixed(2)}
                 </span>
               </div>
-              <div className="flex justify-between font-bold">
-                <span>Final Price deducted from wallet:</span>
-                <span>₹{pricingCalculation.totalPrice.toFixed(2)}</span>
-              </div>
+              
             </div>
             </div>
     
