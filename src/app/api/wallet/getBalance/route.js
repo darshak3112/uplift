@@ -1,24 +1,25 @@
 import { getWallet } from "@/_lib/walletService";
 import { NextResponse } from "next/server";
 
-export  async function POST(req){
-    try{
+export async function POST(req) {
+    try {
         const reqBody = await req.json();
-        if(!reqBody){
-            return NextResponse.json({message: "Body should not be empty"}, {status: 400});
+        if (!reqBody) {
+            return NextResponse.json({ message: "Body should not be empty" }, { status: 400 });
         }
 
-        const {userId} = reqBody;
+        const { userId } = reqBody;
 
-        if(!userId){
-            return NextResponse.json({message: "UserId is required"}, {status: 400});
+        if (!userId) {
+            return NextResponse.json({ message: "UserId is required" }, { status: 400 });
         }
 
         const wallet = await getWallet(userId);
 
-        return NextResponse.json({wallet}, {status: 200});
 
-    }catch(e){
+        return NextResponse.json({ wallet }, { status: 200 });
+
+    } catch (e) {
         console.log(e);
     }
 }

@@ -52,8 +52,8 @@ export async function POST(req) {
       current_date >= post_date && current_date <= end_date
         ? "Open"
         : current_date > end_date
-        ? "Closed"
-        : "Pending";
+          ? "Closed"
+          : "Pending";
 
     // Create the Task instance first
     const task = new Task({
@@ -70,7 +70,7 @@ export async function POST(req) {
       task_flag,
     });
 
-    
+
 
     // Create the AppTask instance and set taskId
     const appTask = new AppTask({
@@ -90,7 +90,7 @@ export async function POST(req) {
 
 
 
-    
+
 
     // Update the creator's task history
     await Creator.findByIdAndUpdate(
@@ -99,11 +99,20 @@ export async function POST(req) {
       { session, new: true }
     );
 
+    const walletDebit = await debitWallet(creator, tester_no * 500, task._id, session);
+    if (!walletDebit.success) {
+      return NextResponse.json(
+        {
+          message: "Survey task created successfully but dont have enough money in wallet",
+          task: savedTask,
+        },
+        { status: 402 }
+      );
+    }
     // Commit the transaction
     await session.commitTransaction();
     session.endSession();
 
-    debitWallet(creator, 500 * task.tester_no,task._id,session);
     return NextResponse.json(
       {
         message: "Task added successfully",

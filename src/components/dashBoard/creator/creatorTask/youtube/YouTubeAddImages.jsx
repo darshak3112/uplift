@@ -123,11 +123,21 @@ export const YouTubeAddImages = () => {
         router.push("dashboard?activeTab=analytics");
       }
     } catch (error) {
-      console.error(
-        "Error uploading task:",
-        error.response ? error.response.data : error.message
-      );
-      toast.error("Failed to upload task.");
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 402) {
+          setErrorMessage("Insufficient funds in wallet");
+          toast.error("Insufficient funds in wallet");
+        } else {
+          setErrorMessage("Failed to create task. Please try again.");
+          console.error("Axios error:", error.response?.data || error.message);
+        }
+      } else {
+        console.error(
+          "Error uploading task:",
+          error.response ? error.response.data : error.message
+        );
+        toast.error("Failed to upload task.");
+      }
     }
   };
 
