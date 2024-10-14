@@ -52,6 +52,6 @@ export async function POST(req) {
         return NextResponse.json(
             { message: "An error occurred", error: error.message },
             { status: 500 }
-        );
-    }
+        );
+    }
 }
