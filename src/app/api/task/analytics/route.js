@@ -41,6 +41,8 @@ export async function POST(req) {
       .populate("specificTask")
       .session(session);
 
+    console.log(task)
+
     if (!task) {
       await session.abortTransaction();
       session.endSession();

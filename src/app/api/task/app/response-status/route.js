@@ -66,6 +66,7 @@ export async function POST(req) {
                 { $set: { "taskHistory.$.status": "success" } },
                 { session }
             );
+            creditWallet(testerId, 500 , taskExists._id , session)
         } else if (status === "response-rejected") {
             await Tester.updateOne(
                 { _id: testerId, "taskHistory.taskId": taskId },
