@@ -1,53 +1,134 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useSearchParams } from 'next/navigation';
-import { Card, Badge, Avatar, TextInput, Select, Button } from 'flowbite-react';
-import { FaUser, FaClock, FaUsers, FaSearch, FaSort } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Card, Badge, Avatar, TextInput, Select, Button } from "flowbite-react";
+import {
+  FaUser,
+  FaClock,
+  FaUsers,
+  FaSearch,
+  FaSort,
+  FaArrowLeft,
+  FaCheck,
+  FaTimes,
+  FaComments,
+} from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const AppTaskReviews = () => {
   const [taskData, setTaskData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest');
-  const [filterTester, setFilterTester] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [filterTester, setFilterTester] = useState("all");
+  const [actionLoading, setActionLoading] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
-      const taskId = searchParams.get('taskId');
-      const taskType = searchParams.get('type');
-
-      if (!taskId || !taskType) {
-        setError('Missing task information');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await axios.post('/api/task/analytics', {
-          id: taskId,
-          type: taskType
-        });
-        setTaskData(response.data.task);
-      } catch (err) {
-        setError('Failed to fetch task data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [searchParams]);
 
+  const fetchData = async () => {
+    const taskId = searchParams.get("taskId");
+    const taskType = searchParams.get("type");
+
+    if (!taskId || !taskType) {
+      setError("Missing task information");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/task/analytics", {
+        id: taskId,
+        type: taskType,
+      });
+      setTaskData(response.data.task);
+    } catch (err) {
+      setError("Failed to fetch task data: " + err.message);
+      toast.error("Failed to fetch task data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    router.push("/dashboard?activeTab=review-creator");
+  };
+
+  const handleResponseStatus = async (testerId, status) => {
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    try {
+      const response = await axios.post("/api/task/app/response-status", {
+        testerId: testerId,
+        taskId: taskData.id,
+        status: status,
+      });
+
+      if (
+        response.data &&
+        response.data.message === "Task response status updated successfully"
+      ) {
+        toast.success(
+          status === "response-accepted"
+            ? "Tester approved successfully"
+            : "Tester disapproved successfully"
+        );
+
+        // Update the local state
+        setTaskData((prevData) => ({
+          ...prevData,
+          answers: {
+            ...prevData.answers,
+            detailedResponses: prevData.answers.detailedResponses.map(
+              (response) =>
+                response.testerId === testerId
+                  ? {
+                      ...response,
+                      status:
+                        status === "response-accepted"
+                          ? "success"
+                          : "response-rejected",
+                    }
+                  : response
+            ),
+          },
+        }));
+      } else {
+        throw new Error("Unexpected response from server");
+      }
+    } catch (error) {
+      toast.error(
+        `Failed to ${
+          status === "response-accepted" ? "approve" : "disapprove"
+        } tester: ${error.message}`
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleApprove = (testerId) =>
+    handleResponseStatus(testerId, "response-accepted");
+  const handleDisapprove = (testerId) =>
+    handleResponseStatus(testerId, "response-rejected");
+
   if (loading) {
     return (
-      <div className="p-8 space-y-4">
-        <div className="h-12 bg-gray-200 rounded-md animate-pulse"></div>
-        <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-40 bg-gray-200 rounded-md animate-pulse"></div>
+      <div className="min-h-screen p-6 space-y-8 bg-gray-50">
+        <div className="w-1/4 h-8 bg-gray-200 rounded animate-pulse"></div>
+        <div className="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, index) => (
+            <Card key={index} className="animate-pulse">
+              <div className="h-20 mb-4 bg-gray-200 rounded"></div>
+              <div className="w-3/4 h-4 mb-2 bg-gray-200 rounded"></div>
+              <div className="w-1/2 h-4 bg-gray-200 rounded"></div>
+            </Card>
           ))}
         </div>
       </div>
@@ -56,9 +137,11 @@ const AppTaskReviews = () => {
 
   if (error) {
     return (
-      <Card className="m-8">
-        <p className="text-center text-red-500">{error}</p>
-      </Card>
+      <div className="min-h-screen p-6 bg-gray-50">
+        <Card className="max-w-lg mx-auto">
+          <p className="text-center text-red-500">{error}</p>
+        </Card>
+      </div>
     );
   }
 
@@ -66,78 +149,172 @@ const AppTaskReviews = () => {
     return null;
   }
 
-  const filteredAndSortedResponses = taskData.answers.detailedResponses
-    .filter(response => 
-      response.text.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterTester === 'all' || response.testerName === filterTester)
+  const groupedResponses = taskData.answers.detailedResponses.reduce(
+    (acc, response) => {
+      if (!acc[response.testerId]) {
+        acc[response.testerId] = [];
+      }
+      acc[response.testerId].push(response);
+      return acc;
+    },
+    {}
+  );
+
+  const filteredAndSortedTesters = Object.entries(groupedResponses)
+    .filter(
+      ([, responses]) =>
+        filterTester === "all" ||
+        responses[0].testerName
+          .toLowerCase()
+          .includes(filterTester.toLowerCase())
     )
-    .sort((a, b) => {
-      if (sortOrder === 'newest') {
-        return new Date(b.date) - new Date(a.date);
+    .sort(([, a], [, b]) => {
+      if (sortOrder === "newest") {
+        return new Date(b[b.length - 1].date) - new Date(a[a.length - 1].date);
       } else {
-        return new Date(a.date) - new Date(b.date);
+        return new Date(a[0].date) - new Date(b[0].date);
       }
     });
 
-  const uniqueTesters = [...new Set(taskData.answers.detailedResponses.map(r => r.testerName))];
+  const uniqueTesters = [
+    ...new Set(taskData.answers.detailedResponses.map((r) => r.testerName)),
+  ];
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800">{taskData.heading}</h1>
-      <p className="text-lg text-gray-600">{taskData.instruction}</p>
-      
-      <div className="flex items-center space-x-4">
-        <Badge color="info" icon={FaUsers}>
-          Total Responses: {taskData.answers.totalResponses}
-        </Badge>
+    <div className="min-h-screen p-6 space-y-8 shadow-2xl bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
+      <div className="flex flex-col items-start justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
+        <Button
+          color="light"
+          onClick={handleBack}
+          className="transition-colors duration-200 shadow-sm hover:bg-gray-200"
+        >
+          <FaArrowLeft className="mr-2" />
+          Back to Dashboard
+        </Button>
+        <h1 className="text-3xl font-bold text-gray-800">{taskData.heading}</h1>
       </div>
 
-      <div className="flex flex-col items-start justify-between space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
-        <div className="flex-1">
+      <Card className="p-6 shadow-lg">
+        <p className="mb-4 text-lg text-gray-700">{taskData.instruction}</p>
+        <div className="flex flex-wrap items-center gap-4">
+          <Badge color="info" size="lg" icon={FaUsers} className="py-2">
+            Total Responses: {taskData.answers.totalResponses}
+          </Badge>
+        </div>
+      </Card>
+
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+        <div className="w-full sm:w-1/2 md:w-1/3">
           <TextInput
             icon={FaSearch}
             placeholder="Search reviews..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="shadow-sm"
           />
         </div>
         <div className="flex space-x-4">
-          <Select icon={FaSort} onChange={(e) => setSortOrder(e.target.value)}>
+          <Select
+            icon={FaSort}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="shadow-sm"
+          >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
           </Select>
-          <Select onChange={(e) => setFilterTester(e.target.value)}>
+          <Select
+            onChange={(e) => setFilterTester(e.target.value)}
+            className="shadow-sm"
+          >
             <option value="all">All Testers</option>
-            {uniqueTesters.map(tester => (
-              <option key={tester} value={tester}>{tester}</option>
+            {uniqueTesters.map((tester) => (
+              <option key={tester} value={tester}>
+                {tester}
+              </option>
             ))}
           </Select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredAndSortedResponses.map((response, index) => (
-          <Card key={index}>
-            <div className="flex items-center space-x-4">
-              <Avatar rounded>
-                <FaUser className="text-gray-400" />
-              </Avatar>
-              <div>
-                <p className="font-medium">{response.testerName}</p>
-                <p className="text-sm text-gray-500">{response.email}</p>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredAndSortedTesters.map(([testerId, responses]) => (
+          <Card
+            key={testerId}
+            className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-xl"
+          >
+            <div className="flex items-start justify-between pb-4 mb-4 border-b border-gray-200">
+              <div className="flex items-center space-x-4">
+                <Avatar
+                  rounded
+                  size="lg"
+                  img={`https://api.dicebear.com/6.x/initials/svg?seed=${responses[0].testerName}`}
+                />
+                <div>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {responses[0].testerName}
+                  </p>
+                  <p className="text-sm text-gray-600">{responses[0].email}</p>
+                  <p className="text-xs text-gray-500">ID: {testerId}</p>
+                </div>
               </div>
+              <Badge
+                color="purple"
+                size="sm"
+                icon={FaComments}
+                className="py-1"
+              >
+                {responses.length}
+              </Badge>
             </div>
-            <p className="mt-4">{response.text}</p>
-            <div className="flex items-center mt-4 text-sm text-gray-500">
-              <FaClock className="mr-2" />
-              {new Date(response.date).toLocaleDateString()}
+            <div className="flex-grow mb-4 space-y-3 overflow-y-auto max-h-48">
+              {responses.map((response, index) => (
+                <div key={index} className="p-3 bg-gray-100 rounded-lg">
+                  <p className="text-sm text-gray-700">{response.text}</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    <FaClock className="inline mr-1" />
+                    {new Date(response.date).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
             </div>
+            {responses.length > 19 && (
+              <div className="flex justify-end pt-4 space-x-2 border-t border-gray-200">
+                <Button
+                  color="success"
+                  size="xs"
+                  onClick={() => handleApprove(testerId)}
+                  disabled={actionLoading || responses[0].status === "success"}
+                  className="transition-all duration-200 hover:shadow-md"
+                >
+                  <FaCheck className="mr-1" />
+                  {responses[0].status === "success" ? "Approved" : "Approve"}
+                </Button>
+                <Button
+                  color="failure"
+                  size="xs"
+                  onClick={() => handleDisapprove(testerId)}
+                  disabled={
+                    actionLoading || responses[0].status === "response-rejected"
+                  }
+                  className="transition-all duration-200 hover:shadow-md"
+                >
+                  <FaTimes className="mr-1" />
+                  {responses[0].status === "response-rejected"
+                    ? "Disapproved"
+                    : "Disapprove"}
+                </Button>
+              </div>
+            )}
           </Card>
         ))}
       </div>
 
-      {filteredAndSortedResponses.length === 0 && (
-        <p className="mt-8 text-center text-gray-500">No reviews found matching your criteria.</p>
+      {filteredAndSortedTesters.length === 0 && (
+        <Card className="py-8 text-center">
+          <p className="text-lg text-gray-500">
+            No reviews found matching your criteria.
+          </p>
+        </Card>
       )}
     </div>
   );

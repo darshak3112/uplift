@@ -21,49 +21,9 @@ export async function POST(req) {
   session.startTransaction();
 
   try {
-    
 
-    const { taskId, testerId, status } = req.json();
-    if (status === "rejected") {
-      const tester = await Tester.findById(testerId).session(session);
-      const task = await Task.findById(taskId).session(session);
-      const existingTaskEntry = tester.taskHistory.find((entry) =>
-        entry.taskId.equals(task._id)
-      );
 
-      if (existingTaskEntry) {
-        existingTaskEntry.status = "rejected";
-        existingTaskEntry.appliedAt = new Date();
-      } else {
-        tester.taskHistory.push({
-          taskId: task._id,
-          status: "rejected",
-          appliedAt: new Date(),
-        });
-      }
-
-      await tester.save({ session });
-      await session.commitTransaction();
-      session.endSession();
-
-      return NextResponse.json(
-        {
-          message: "Survey response rejected successfully",
-        },
-        { status: 201 }
-      );
-    }
-    const parsedData = surveyResponseSchema.safeParse(await req.json());
-    if (!parsedData.success) {
-      await session.abortTransaction();
-      session.endSession();
-      return NextResponse.json(
-        { message: "Invalid request body", errors: parsedData.error.issues },
-        { status: 400 }
-      );  
-    }
-
-    const { response } = parsedData.data;
+    const { taskId, testerId, response } = await req.json();
 
     const task = await Task.findById(taskId)
       .populate("specificTask")
@@ -133,16 +93,16 @@ export async function POST(req) {
       await task.save({ session });
     }
 
-    const result = await creditWallet(testerId ,response.length * 0.9, task._id);
+    // const result = await creditWallet(testerId, response.length * 0.9, task._id);
 
-    if(result.success === false){
-      await session.abortTransaction();
-      session.endSession();
-      return NextResponse.json(
-        { message: result.message },
-        { status: 500 }
-      );
-    }
+    // if (result.success === false) {
+    //   await session.abortTransaction();
+    //   session.endSession();
+    //   return NextResponse.json(
+    //     { message: result.message },
+    //     { status: 500 }
+    //   );
+    // }
     await session.commitTransaction();
     session.endSession();
 
@@ -153,6 +113,7 @@ export async function POST(req) {
       },
       { status: 201 }
     );
+
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

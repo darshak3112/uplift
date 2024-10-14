@@ -43,7 +43,6 @@ export default function ApproveDisapprove() {
 
   useEffect(() => {
     filterTesters();
-    console.log(testerDetails);
   }, [searchTerm, ageFilter, testerDetails]);
 
   const fetchTesterList = async () => {

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
-import { Tester, Task, MarketingTask, AppTask } from "@/models";
+import { Tester, Task, MarketingTask } from "@/models";
 import { creditWallet } from "@/_lib/walletService";
 
 export async function POST(req) {
@@ -18,13 +18,13 @@ export async function POST(req) {
             );
         }
 
-        const { testerId, taskId , status } = reqBody;   
-
-        if (!testerId || !taskId) {
+        const { testerId, taskId, status } = reqBody;   
+        
+        if (!testerId || !taskId || !status) {
             await session.abortTransaction();
             session.endSession();
             return NextResponse.json(
-                { message: "Tester ID and Task ID are required", reqBody },
+                { message: "Tester ID and Task ID and Status are required", reqBody },
                 { status: 400 }
             );
         }
@@ -60,7 +60,7 @@ export async function POST(req) {
         }
 
         if (status === "response-accepted") {
-            await Tester.updateOne(
+           await Tester.updateOne(
                 { _id: testerId, "taskHistory.taskId": taskId },
                 { $set: { "taskHistory.$.status": "success" } },
                 { session }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import {
   addResponseTasks,
@@ -78,20 +78,41 @@ const SurveysResponse = () => {
     setVerificationQuestion(randomQuestion);
     setVerificationStep(true);
   };
-  
-  const handleVerificationSubmit = () => {
 
+  const handleVerificationSubmit = () => {
     const originalAnswer = responseTaskData.find(
       (response) => response.questionId === verificationQuestion.questionId
     )?.answer;
-    
+
     if (verificationAnswer === originalAnswer) {
       submitFinalTask();
     } else {
-      toast.error(
-        "Verification failed. Your responses don't match. Please try again."
+      rejectSurvey();
+    }
+  };
+
+  // Function to reject the survey and call the API
+  const rejectSurvey = async () => {
+    try {
+      const surveyResponse = await axios.post(
+        "/api/task/survey/taskResponseReject",
+        {
+          taskId,
+          testerId,
+        }
       );
-      router.push("dashboard?activeTab=available-task");
+
+      if (surveyResponse.status === 201) {
+        dispatch(clearResponseTask());
+        dispatch(clearAvailableTask());
+        dispatch(clearHistoryUser());
+        toast.error(
+          "Verification failed. Your responses don't match. Survey rejected."
+        );
+        router.push("dashboard?activeTab=available-task");
+      }
+    } catch (error) {
+      console.error("Error rejecting survey:", error);
     }
   };
 
@@ -99,12 +120,13 @@ const SurveysResponse = () => {
     setIsSubmitting(true);
     try {
       const surveyResponse = { taskId, testerId, response: responseTaskData };
+      console.log(surveyResponse);
       const response = await axios.post(
         "/api/task/survey/taskResponse",
         surveyResponse
       );
 
-      if (response.status === 201) {
+      if (surveyResponse.status === 201) {
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
         dispatch(clearHistoryUser());
@@ -127,6 +149,31 @@ const SurveysResponse = () => {
   };
 
   const progressPercentage = (questionNo / noOfQuestions) * 100;
+
+  // Detect back button and reload events
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (verificationStep) {
+        event.preventDefault();
+        event.returnValue = ""; // Required for some browsers
+        rejectSurvey();
+      }
+    };
+
+    const handlePopState = () => {
+      if (verificationStep) {
+        rejectSurvey();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [verificationStep]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">

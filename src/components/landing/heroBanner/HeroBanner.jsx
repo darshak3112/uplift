@@ -6,7 +6,7 @@ import { ArrowRight, ChevronRight, Play } from "lucide-react";
 
 export function HeroBanner() {
   return (
-    <section className="relative h-screen overflow-hidden text-white bg-gradient-to-br from-indigo-900 via-blue-800 to-indigo-900">
+    <section className="relative h-screen overflow-hidden text-white -top-4 bg-gradient-to-br from-indigo-900 via-blue-800 to-indigo-900">
       <div className="absolute inset-0 bg-[url('/path/to/texture.png')] opacity-10"></div>
       <svg
         className="absolute bottom-0 left-0 w-full text-indigo-900 fill-current"

@@ -37,9 +37,6 @@ export async function POST(req) {
         },
       });
 
-      
-      console.log(appliedTasks);
-
       if (appliedTasks.length === 0) {
         return NextResponse.json(
           { message: "No applied tasks found", id },

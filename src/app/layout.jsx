@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
         <StoreProvider>
           <FetchData />
           <HeaderComponent />
-          <main className="pt-16"> {/* Add padding-top here */}
+          <main className="pt-20 pb-4"> {/* Add padding-top here */}
             <NextTopLoader
               showSpinner={true}
               color="radial-gradient(circle at 10% 20%, rgb(99, 55, 255) 0%, rgb(39, 170, 255) 90%)"

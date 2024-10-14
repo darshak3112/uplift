@@ -9,7 +9,7 @@ import {
   Progress,
   Modal,
 } from "flowbite-react";
-import { FaTrash, FaUpload } from "react-icons/fa";
+import { FaArrowLeft, FaTrash, FaUpload } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -158,6 +158,10 @@ const MarketingResponse = ({ initialData }) => {
     setShowConfirmModal(true);
   };
 
+  const handleBack = () => {
+    router.push("/dashboard?activeTab=available-task");
+  };
+
   const confirmSubmit = async () => {
     setShowConfirmModal(false);
     try {
@@ -166,8 +170,8 @@ const MarketingResponse = ({ initialData }) => {
         formData
       );
       if (response.status === 201) {
-          toast.success("Review submitted successfully!");
-          router.push("/dashboard?activeTab=available-task")
+        toast.success("Review submitted successfully!");
+        router.push("/dashboard?activeTab=available-task");
         // You might want to redirect or clear the form here
       } else {
         throw new Error("Unexpected response status");
@@ -184,9 +188,13 @@ const MarketingResponse = ({ initialData }) => {
   return (
     <div className="max-w-2xl p-6 mx-auto">
       <Card>
-        <h2 className="mb-4 text-2xl font-bold text-center">
-          Marketing Response
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <Button color="light" onClick={handleBack}>
+            <FaArrowLeft className="mr-2" />
+            Back
+          </Button>
+          <h2 className="text-2xl font-bold">Marketing Response</h2>
+        </div>
         <form
           onSubmit={handleSubmit}
           className="flex flex-col h-[calc(100vh-200px)]"
