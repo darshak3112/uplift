@@ -68,7 +68,7 @@ export async function debitWallet(userId, amount, taskId , session) {
 
       // Add amount to system wallet
       const systemWallet = await Wallet.findOneAndUpdate(
-        { _id: SYSTEM_WALLET },
+        { userType: "System" },
         { $inc: { balance: amount } },
         { new: true, session }
       );

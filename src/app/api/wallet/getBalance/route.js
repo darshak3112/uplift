@@ -15,7 +15,7 @@ export async function POST(req) {
         }
 
         const wallet = await getWallet(userId);
-
+        console.log(wallet);
 
         return NextResponse.json({ wallet }, { status: 200 });
 

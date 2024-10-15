@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useAppDispatch } from "@/_lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import { logout } from "@/_lib/store/features/userInfo/userInfoSlice";
 import { clearHistoryUser } from "@/_lib/store/features/shared/history/historyTesterSlice";
 import { clearResponseTask } from "@/_lib/store/features/tester/responseTask/responseTaskSlice";
@@ -24,6 +24,7 @@ export function HeaderComponent() {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { role } = useAppSelector((state) => state.userInfo);
 
   useEffect(() => {
     setIsClient(true);
@@ -75,7 +76,10 @@ export function HeaderComponent() {
 
           {/* Desktop Navigation */}
           <div className="items-center hidden space-x-6 md:flex">
-            <Link href="/" className="text-gray-600 transition-colors hover:text-blue-600">
+            <Link
+              href="/"
+              className="text-gray-600 transition-colors hover:text-blue-600"
+            >
               Home
             </Link>
             {pathname === "/" &&
@@ -92,7 +96,10 @@ export function HeaderComponent() {
                 </ScrollLink>
               ))}
             {authorizeToken && pathname !== "/dashboard" && (
-              <Link href="/dashboard" className="font-semibold text-blue-600 transition-colors hover:text-blue-800">
+              <Link
+                href={role === "admin" ? "/admin/dashboard" : "/dashboard"}
+                className="font-semibold text-blue-600 transition-colors hover:text-blue-800"
+              >
                 Dashboard
               </Link>
             )}
@@ -120,11 +127,26 @@ export function HeaderComponent() {
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-600 hover:text-blue-600 focus:outline-none"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 {isOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
                 )}
               </svg>
             </button>
@@ -134,7 +156,10 @@ export function HeaderComponent() {
         {/* Mobile Navigation Menu */}
         {isOpen && (
           <div className="mt-4 space-y-4 md:hidden">
-            <Link href="/" className="block text-gray-600 transition-colors hover:text-blue-600">
+            <Link
+              href="/"
+              className="block text-gray-600 transition-colors hover:text-blue-600"
+            >
               Home
             </Link>
             {pathname === "/" &&
@@ -152,7 +177,10 @@ export function HeaderComponent() {
                 </ScrollLink>
               ))}
             {authorizeToken && pathname !== "/dashboard" && (
-              <Link href="/dashboard" className="block font-semibold text-blue-600 transition-colors hover:text-blue-800">
+              <Link
+                href={role === "admin" ? "/admin/dashboard" : "/dashboard"}
+                className="block font-semibold text-blue-600 transition-colors hover:text-blue-800"
+              >
                 Dashboard
               </Link>
             )}
