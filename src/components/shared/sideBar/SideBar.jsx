@@ -79,7 +79,7 @@ export function SideBarComponent() {
         },
         {
           href: "/dashboard?activeTab=ticket",
-          label: "Ticket Generation",
+          label: "Tickets",
           icon: IoTicket,
         },
         {

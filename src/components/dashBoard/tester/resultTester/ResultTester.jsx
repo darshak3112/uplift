@@ -71,7 +71,6 @@ export default function ResultTester() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [ticketDescription, setTicketDescription] = useState("");
 
-  // New state for sorting and filtering
   const [sortOption, setSortOption] = useState("date");
   const [filterOption, setFilterOption] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -114,14 +113,12 @@ export default function ResultTester() {
           task.type?.toLowerCase().includes("marketing")
       );
 
-      // Apply status filter
       if (filterOption !== "all") {
         filtered = filtered.filter(
           (task) => task.status.toLowerCase() === filterOption
         );
       }
 
-      // Apply search term filter
       if (searchTerm) {
         filtered = filtered.filter(
           (task) =>
@@ -130,7 +127,6 @@ export default function ResultTester() {
         );
       }
 
-      // Apply sorting
       filtered.sort((a, b) => {
         if (sortOption === "date") {
           return new Date(b.date) - new Date(a.date);
@@ -151,17 +147,31 @@ export default function ResultTester() {
 
   const submitTicket = async () => {
     try {
-      await axios.post("/api/raise-ticket", {
+      setIsLoading(true);
+      const response = await axios.post("/api/ticket/addTicket", {
         taskId: selectedTask.id,
         testerId,
-        description: ticketDescription,
+        messages: [
+          {
+            content: ticketDescription,
+            sender: "tester",
+          },
+        ],
       });
-      toast.success("Ticket raised successfully");
-      setIsModalOpen(false);
-      setTicketDescription("");
+
+      if (response.status === 200) {
+        toast.success("Ticket raised successfully");
+        setIsModalOpen(false);
+        setTicketDescription("");
+        await fetchHistoryTasks();
+      } else {
+        throw new Error("Failed to raise ticket");
+      }
     } catch (error) {
       console.error("Error raising ticket:", error);
-      toast.error("Failed to raise ticket");
+      toast.error(error.response?.data?.message || "Failed to raise ticket");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -249,7 +259,14 @@ export default function ResultTester() {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={submitTicket}>Submit Ticket</Button>
+          <Button color="blue" onClick={submitTicket} disabled={isLoading}>
+            {isLoading ? (
+              <AiOutlineLoading className="w-5 h-5 mr-2 animate-spin" />
+            ) : (
+              <FaTicketAlt className="mr-2" />
+            )}
+            Submit Ticket
+          </Button>
           <Button color="gray" onClick={() => setIsModalOpen(false)}>
             Cancel
           </Button>
