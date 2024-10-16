@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Modal, Spinner, Button } from "flowbite-react";
-import TicketDetails from "@/components/dashBoard/tickets/TicketDetails";
-import ChatComponent from "@/components/dashBoard/tickets/ChatComponent";
-import TicketList from "@/components/dashBoard/tickets/TicketList";
+import TicketDetails from "@/components/admin/dashboard/tickets/TicketDetails";
+import ChatComponent from "@/components/admin/dashboard/tickets/ChatComponent";
+import TicketList from "@/components/admin/dashboard/tickets/TicketList";
 import toast from "react-hot-toast";
 
 const Tickets = () => {
@@ -92,7 +92,6 @@ const Tickets = () => {
         },
       });
       if (response.status === 201) {
-        console.log("Server response:", response.data.message);
         setMessages((prevMessages) => [...prevMessages, response.data.message]);
         toast.success("Message sent successfully");
         setNewMessage("");

@@ -28,7 +28,6 @@ export default function YouTubeResponse() {
     const storeKey = taskMapping[type]; // Map type to store key
     return state.availableTask[storeKey].find((task) => task._id === taskId)?.specificTaskDetails; // Fetch the specific task
   });
-console.log(taskInfo);
   const youtubeThumbnails = taskInfo?.youtube_thumbnails || [];
   const testerId = useAppSelector((state) => state.userInfo?.id);
 
