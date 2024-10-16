@@ -43,7 +43,7 @@ export default function Login() {
     if (getCookie("authorizeToken")) {
       router.push("/admin/dashboard");
     }
-  }, []);
+  }, [router]);
 
   const dispatch = useAppDispatch();
   const onSubmit = async (data, event) => {

@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation"; // Change this to useRouter
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import { Button, Card, Label, TextInput, Radio } from "flowbite-react";
+import { Button, Card, Label, TextInput } from "flowbite-react";
 import toast from "react-hot-toast";
 
 export default function ResetPassword({ params }) {
   const router = useRouter();
+  const { token } = params; // Assuming token is passed as a prop
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  // Use `useRouter` to get search params
+  const { query } = router; 
+  const role = query.role; // Accessing role directly from query
 
   const {
     register,
@@ -18,12 +26,6 @@ export default function ResetPassword({ params }) {
   } = useForm({
     defaultValues: { password: "", role: null },
   });
-  const searchParams = useSearchParams();
-  const { token } = params;
-  const role = searchParams.get("role");
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     if (role) {
@@ -77,7 +79,7 @@ export default function ResetPassword({ params }) {
                   message: "Password must be at least 8 characters",
                 },
                 maxLength: {
-                  value: 15, // Adjust max length as needed
+                  value: 15,
                   message: "Password cannot exceed 15 characters",
                 },
                 pattern: {

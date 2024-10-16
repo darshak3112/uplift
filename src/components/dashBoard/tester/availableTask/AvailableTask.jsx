@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import axios from "axios";
 import { addAvailableTasks } from "@/_lib/store/features/tester/availableTask/availableTaskSlice";
@@ -9,7 +9,7 @@ export default function AvailableTask() {
   const testerId = useAppSelector((state) => state.userInfo.id);
   const availableTaskData = useAppSelector((state) => state.availableTask);
 
-  const fetchAvailableTasks = async () => {
+  const fetchAvailableTasks = useCallback(async () => {
     try {
       if (!availableTaskData?.isTaskAvailable && testerId) {
         const response = await axios.post("/api/task/list", { testerId });
@@ -27,13 +27,13 @@ export default function AvailableTask() {
     } catch (error) {
       console.error("Error fetching available tasks:", error);
     }
-  };
+  }, [availableTaskData, dispatch, testerId]);
 
   useEffect(() => {
     if (testerId) {
       fetchAvailableTasks();
     }
-  }, [testerId]);
+  }, [testerId, fetchAvailableTasks]);
 
   return (
     <div>

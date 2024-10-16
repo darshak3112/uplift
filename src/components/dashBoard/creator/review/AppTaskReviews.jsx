@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, Badge, Avatar, TextInput, Select, Button } from "flowbite-react";
@@ -26,11 +26,7 @@ const AppTaskReviews = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  useEffect(() => {
-    fetchData();
-  }, [searchParams]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const taskId = searchParams.get("taskId");
     const taskType = searchParams.get("type");
 
@@ -52,7 +48,11 @@ const AppTaskReviews = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]); // Include searchParams as a dependency
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]); // Only fetchData as dependency
 
   const handleBack = () => {
     router.push("/dashboard?activeTab=review-creator");
@@ -103,8 +103,7 @@ const AppTaskReviews = () => {
       }
     } catch (error) {
       toast.error(
-        `Failed to ${
-          status === "response-accepted" ? "approve" : "disapprove"
+        `Failed to ${status === "response-accepted" ? "approve" : "disapprove"
         } tester: ${error.message}`
       );
     } finally {
@@ -253,69 +252,63 @@ const AppTaskReviews = () => {
                   <p className="text-lg font-semibold text-gray-800">
                     {responses[0].testerName}
                   </p>
-                  <p className="text-sm text-gray-600">{responses[0].email}</p>
-                  <p className="text-xs text-gray-500">ID: {testerId}</p>
+                  <p className="text-sm text-gray-500">
+                    {responses[0].testerEmail}
+                  </p>
                 </div>
               </div>
-              <Badge
-                color="purple"
-                size="sm"
-                icon={FaComments}
-                className="py-1"
-              >
-                {responses.length}
-              </Badge>
+              <div className="flex items-center space-x-2">
+                <p className="text-xs text-gray-500">
+                  {responses.length} Responses
+                </p>
+                <p className="text-xs text-gray-500">
+                  <FaClock className="inline" />{" "}
+                  {new Date(responses[0].date).toLocaleDateString()}
+                </p>
+              </div>
             </div>
-            <div className="flex-grow mb-4 space-y-3 overflow-y-auto max-h-48">
-              {responses.map((response, index) => (
-                <div key={index} className="p-3 bg-gray-100 rounded-lg">
-                  <p className="text-sm text-gray-700">{response.text}</p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    <FaClock className="inline mr-1" />
-                    {new Date(response.date).toLocaleDateString()}
+            <div className="flex-grow">
+              {responses.map((response) => (
+                <div
+                  key={response.id}
+                  className="flex justify-between p-4 border-b border-gray-200"
+                >
+                  <p className="text-gray-600">{response.content}</p>
+                  <p
+                    className={`text-sm font-semibold ${
+                      response.status === "success"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {response.status === "success" ? (
+                      <FaCheck />
+                    ) : (
+                      <FaTimes />
+                    )}
                   </p>
                 </div>
               ))}
             </div>
-            {responses.length > 1 && (
-              <div className="flex justify-end pt-4 space-x-2 border-t border-gray-200">
-                <Button
-                  color="success"
-                  size="xs"
-                  onClick={() => handleApprove(testerId)}
-                  disabled={actionLoading || responses[0].status === "success"}
-                  className="transition-all duration-200 hover:shadow-md"
-                >
-                  <FaCheck className="mr-1" />
-                  {responses[0].status === "success" ? "Approved" : "Approve"}
-                </Button>
-                <Button
-                  color="failure"
-                  size="xs"
-                  onClick={() => handleDisapprove(testerId)}
-                  disabled={
-                    actionLoading || responses[0].status === "response-rejected"
-                  }
-                  className="transition-all duration-200 hover:shadow-md"
-                >
-                  <FaTimes className="mr-1" />
-                  {responses[0].status === "response-rejected"
-                    ? "Disapproved"
-                    : "Disapprove"}
-                </Button>
-              </div>
-            )}
+            <div className="flex justify-end p-4 space-x-4">
+              <Button
+                color="success"
+                onClick={() => handleApprove(testerId)}
+                disabled={actionLoading}
+              >
+                Approve
+              </Button>
+              <Button
+                color="failure"
+                onClick={() => handleDisapprove(testerId)}
+                disabled={actionLoading}
+              >
+                Disapprove
+              </Button>
+            </div>
           </Card>
         ))}
       </div>
-
-      {filteredAndSortedTesters.length === 0 && (
-        <Card className="py-8 text-center">
-          <p className="text-lg text-gray-500">
-            No reviews found matching your criteria.
-          </p>
-        </Card>
-      )}
     </div>
   );
 };

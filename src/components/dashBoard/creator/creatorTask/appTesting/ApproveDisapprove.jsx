@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
   Table,
@@ -41,22 +41,7 @@ export default function ApproveDisapprove() {
   const taskType = searchParams.get("taskType");
   const creatorId = useAppSelector((state) => state.userInfo.id);
 
-  useEffect(() => {
-    fetchTesterList();
-  }, []);
-
-  useEffect(() => {
-    filterTesters();
-  }, [
-    searchTerm,
-    ageFilter,
-    testerDetails,
-    selectedTesterDetails,
-    rejectedTesterDetails,
-    activeView,
-  ]);
-
-  const fetchTesterList = async () => {
+  const fetchTesterList = useCallback(async () => {
     try {
       let endpoint = "";
       const responseApprovedDisapproved = await axios.post(
@@ -95,9 +80,14 @@ export default function ApproveDisapprove() {
       setLoading(false);
       toast.error("Failed to fetch tester list");
     }
-  };
+  }, [taskId, taskType, creatorId]);
 
-  const filterTesters = () => {
+  useEffect(() => {
+    fetchTesterList();
+  }, [fetchTesterList]);
+
+  // Memoize the filterTesters function using useCallback
+  const filterTesters = useCallback(() => {
     let dataToFilter = [];
     switch (activeView) {
       case "applied":
@@ -126,7 +116,18 @@ export default function ApproveDisapprove() {
     }
 
     setFilteredTesters(filtered);
-  };
+  }, [
+    searchTerm,
+    ageFilter,
+    testerDetails,
+    selectedTesterDetails,
+    rejectedTesterDetails,
+    activeView,
+  ]);
+
+  useEffect(() => {
+    filterTesters();
+  }, [filterTesters]);
 
   const handleSort = (column) => {
     const newDirection =
@@ -172,8 +173,7 @@ export default function ApproveDisapprove() {
       if (responseApplied.status === 200) {
         await fetchTesterList();
         toast.success(
-          `Tester ${
-            action === "approve" ? "approved" : "disapproved"
+          `Tester ${action === "approve" ? "approved" : "disapproved"
           } successfully!`
         );
       } else {
@@ -266,95 +266,72 @@ export default function ApproveDisapprove() {
           <Button color="light" onClick={downloadCSV}>
             <FaDownload className="mr-2" /> Download CSV
           </Button>
-          <span className="text-sm text-gray-600">
-            Showing {filteredTesters.length} testers
-          </span>
         </div>
       </div>
-
-      <div className="overflow-x-auto">
-        <Table hoverable className="w-full">
-          <Table.Head>
-            {[
-              "Name",
-              "Email",
-              "Age",
-              ...(activeView === "applied" ? ["Actions"] : []),
-            ].map((header) => (
-              <Table.HeadCell
-                key={header}
-                onClick={() => handleSort(header.toLowerCase())}
-                className="cursor-pointer"
-              >
-                <div className="flex items-center">
-                  {header}
-                  <FaSort
-                    className={`ml-1 ${
-                      sortColumn === header.toLowerCase()
-                        ? "text-blue-600"
-                        : "text-gray-400"
-                    }`}
-                  />
-                </div>
-              </Table.HeadCell>
-            ))}
-          </Table.Head>
-          <Table.Body className="divide-y">
-            {filteredTesters.map((tester) => (
-              <Table.Row
-                key={tester.email}
-                className="bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <Table.Cell className="font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                  {tester.name}
-                </Table.Cell>
-                <Table.Cell>{tester.email}</Table.Cell>
-                <Table.Cell>{tester.age}</Table.Cell>
-                {activeView === "applied" && (
-                  <Table.Cell>
-                    <div className="flex space-x-2">
-                      <Button
-                        color="success"
-                        size="sm"
-                        onClick={() =>
-                          handleApproveDisapprove(tester.testerId, "approve")
-                        }
-                      >
-                        <FaCheck className="mr-2" /> Approve
-                      </Button>
-                      <Button
-                        color="failure"
-                        size="sm"
-                        onClick={() =>
-                          handleApproveDisapprove(tester.testerId, "disapprove")
-                        }
-                      >
-                        <FaTimes className="mr-2" /> Disapprove
-                      </Button>
-                    </div>
-                  </Table.Cell>
-                )}
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </div>
+      <Table hoverable className="w-full">
+        <Table.Head>
+          <Table.HeadCell>
+            Name{" "}
+            <FaSort
+              className="cursor-pointer"
+              onClick={() => handleSort("name")}
+            />
+          </Table.HeadCell>
+          <Table.HeadCell>
+            Email{" "}
+            <FaSort
+              className="cursor-pointer"
+              onClick={() => handleSort("email")}
+            />
+          </Table.HeadCell>
+          <Table.HeadCell>
+            Age{" "}
+            <FaSort
+              className="cursor-pointer"
+              onClick={() => handleSort("age")}
+            />
+          </Table.HeadCell>
+          <Table.HeadCell>Actions</Table.HeadCell>
+        </Table.Head>
+        <Table.Body>
+          {filteredTesters.map((tester) => (
+            <Table.Row key={tester.id}>
+              <Table.Cell>{tester.name}</Table.Cell>
+              <Table.Cell>{tester.email}</Table.Cell>
+              <Table.Cell>{tester.age}</Table.Cell>
+              <Table.Cell>
+                <Button
+                  color="green"
+                  onClick={() => handleApproveDisapprove(tester.id, "approve")}
+                >
+                  <FaCheck className="mr-2" /> Approve
+                </Button>
+                <Button
+                  color="red"
+                  className="ml-2"
+                  onClick={() =>
+                    handleApproveDisapprove(tester.id, "disapprove")
+                  }
+                >
+                  <FaTimes className="mr-2" /> Disapprove
+                </Button>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
 
       <Modal show={showModal} onClose={() => setShowModal(false)}>
         <Modal.Header>Confirm Action</Modal.Header>
         <Modal.Body>
-          <div className="space-y-6">
-            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              Are you sure you want to {modalAction.type} this tester?
-            </p>
-          </div>
+          Are you sure you want to{" "}
+          {modalAction.type === "approve" ? "approve" : "disapprove"} this
+          tester?
         </Modal.Body>
         <Modal.Footer>
-          <Button color="blue" onClick={confirmAction}>
-            Yes, {modalAction.type}
-          </Button>
+          <Button onClick={confirmAction}>Yes</Button>
           <Button color="gray" onClick={() => setShowModal(false)}>
-            Cancel
+            No
           </Button>
         </Modal.Footer>
       </Modal>

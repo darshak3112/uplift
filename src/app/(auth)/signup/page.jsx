@@ -68,7 +68,7 @@ export default function SignUp() {
     if (getCookie("authorizeToken")) {
       router.push("/dashboard");
     }
-  }, [])
+  }, [router])
 
   const onSubmit = async (data, event) => {
     event.preventDefault();

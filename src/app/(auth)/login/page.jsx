@@ -45,7 +45,7 @@ export default function Login() {
     if (getCookie("authorizeToken")) {
       router.push("/dashboard");
     }
-  }, [])
+  }, [router])
 
   const isRoleSelected = watch("role");
   const dispatch = useAppDispatch();

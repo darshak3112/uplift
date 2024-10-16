@@ -9,7 +9,7 @@ import ResultCreator from "@/components/dashBoard/creator/resultCreator/ResultCr
 import ResultTester from "@/components/dashBoard/tester/resultTester/ResultTester";
 import Wallet from "@/components/dashBoard/wallet/Wallet";
 import Analytics from "@/components/dashBoard/creator/analytics/Analytics";
-
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import AddTask from "@/components/dashBoard/creator/addTask/AddTask";
 import DefaultComponent from "@/components/dashBoard/default/Default";
@@ -23,6 +23,7 @@ import MarketingTaskReviews from "@/components/dashBoard/creator/review/Marketin
 import ApproveDisapprove from "@/components/dashBoard/creator/creatorTask/appTesting/ApproveDisapprove";
 import Tickets from "@/components/dashBoard/tickets/Tickets";
 
+// Mapping of components to their respective tab or task types
 const componentsMap = {
   "available-task": AvailableTask,
   "applied-task": AppliedTask,
@@ -45,13 +46,22 @@ const componentsMap = {
 };
 
 export default function Dashboard() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+// Separate the logic that uses useSearchParams into its own component
+function DashboardContent() {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("activeTab");
   const taskId = searchParams.get("taskId");
   const type = searchParams.get("type");
 
+  // Determine which component to render based on search params
   let ComponentToRender = DefaultComponent;
-
   if (taskId && type) {
     ComponentToRender = componentsMap[type] || DefaultComponent;
   } else if (activeTab) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useCallback } from "react";
 import {
   Card,
   Button,
@@ -41,20 +41,7 @@ export default function Wallet() {
 
   const { id } = useAppSelector((state) => state.userInfo);
 
-  useEffect(() => {
-    fetchWalletBalance();
-    fetchTransactions();
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, [id]);
-
-  const fetchWalletBalance = async () => {
+  const fetchWalletBalance = useCallback(async () => {
     try {
       const response = await axios.post("/api/wallet/getBalance", {
         userId: id,
@@ -66,9 +53,9 @@ export default function Wallet() {
     } finally {
       setLoading(false);
     }
-  };
+  },[id]);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await axios.post("/api/wallet/transactionHistory", {
         userId: id,
@@ -78,7 +65,22 @@ export default function Wallet() {
       console.error("Error fetching transactions:", error);
       toast.error("Failed to fetch transactions");
     }
-  };
+  },[id]);
+
+  useEffect(() => {
+    fetchWalletBalance();
+    fetchTransactions();
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [id , fetchTransactions , fetchWalletBalance]);
+
+  
 
   const handleAddFunds = async () => {
     try {

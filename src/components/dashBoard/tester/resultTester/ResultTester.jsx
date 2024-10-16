@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -65,7 +65,7 @@ export default function ResultTester() {
   const testerId = useAppSelector((state) => state.userInfo.id);
   const role = useAppSelector((state) => state.userInfo.role);
   const historyData = useAppSelector((state) => state.historyUser);
-  const router = useRouter()
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,7 +76,7 @@ export default function ResultTester() {
   const [filterOption, setFilterOption] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchHistoryTasks = async () => {
+  const fetchHistoryTasks = useCallback(async () => {
     try {
       if (!historyData.isHistoryAvailable && testerId) {
         const response = await axios.post("/api/task/history", {
@@ -98,13 +98,13 @@ export default function ResultTester() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dispatch, historyData.isHistoryAvailable, testerId, role]);
 
   useEffect(() => {
     if (testerId) {
       fetchHistoryTasks();
     }
-  }, [testerId]);
+  }, [testerId, fetchHistoryTasks]);
 
   useEffect(() => {
     if (historyData.history.length > 0) {
@@ -165,14 +165,10 @@ export default function ResultTester() {
         setIsModalOpen(false);
         setTicketDescription("");
         await fetchHistoryTasks();
-      }
-      else if(response.status === 400 && response.message === "Ticket already exists")
-      {
-        router.push("/dashboard?activeTab=ticket")
-        throw new Error("Ticket already Exists")
-      }
-      
-      else {
+      } else if (response.status === 400 && response.message === "Ticket already exists") {
+        router.push("/dashboard?activeTab=ticket");
+        throw new Error("Ticket already Exists");
+      } else {
         throw new Error("Failed to raise ticket");
       }
     } catch (error) {
@@ -257,9 +253,7 @@ export default function ResultTester() {
               Task: {selectedTask?.heading}
             </h3>
             <Textarea
-              id="description"
               placeholder="Describe your issue..."
-              required={true}
               rows={4}
               value={ticketDescription}
               onChange={(e) => setTicketDescription(e.target.value)}
@@ -267,16 +261,18 @@ export default function ResultTester() {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button color="blue" onClick={submitTicket} disabled={isLoading}>
-            {isLoading ? (
-              <AiOutlineLoading className="w-5 h-5 mr-2 animate-spin" />
-            ) : (
-              <FaTicketAlt className="mr-2" />
-            )}
-            Submit Ticket
-          </Button>
-          <Button color="gray" onClick={() => setIsModalOpen(false)}>
+          <Button
+            color="gray"
+            onClick={() => setIsModalOpen(false)}
+          >
             Cancel
+          </Button>
+          <Button
+            color="green"
+            onClick={submitTicket}
+            disabled={isLoading}
+          >
+            Submit
           </Button>
         </Modal.Footer>
       </Modal>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Button, Card, Label, Textarea } from "flowbite-react";
@@ -12,15 +12,11 @@ const AppResponse = () => {
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    checkOngoingTask();
-  }, []);
-
   const { id } = useAppSelector((state) => state.userInfo);
   const taskId = searchParams.get("taskId");
 
-  const checkOngoingTask = async () => {
+  // Define checkOngoingTask using useCallback
+  const checkOngoingTask = useCallback(async () => {
     try {
       const result = await axios.post("/api/task/ongoing/check", {
         id,
@@ -39,7 +35,11 @@ const AppResponse = () => {
         router.push("/dashboard?activeTab=available-task");
       }
     }
-  };
+  }, [id, taskId, router]);
+
+  useEffect(() => {
+    checkOngoingTask();
+  }, [checkOngoingTask]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,16 +85,14 @@ const AppResponse = () => {
             <FaArrowLeft className="mr-2" />
             Back
           </Button>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Today&apos;s Feedback
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">Today&apos;s Feedback</h2>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="response" value="Your Response" />
             <Textarea
               id="response"
-              placeholder="Enter your response here..."
+              placeholder="Enter your response here..." // Ensure this does not contain unescaped quotes
               required
               rows={6}
               value={response}

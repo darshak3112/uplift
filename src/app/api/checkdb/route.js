@@ -1,10 +1,13 @@
-import { dbConnect } from "@/_lib/db";
-import { NextResponse } from "next/server";
+import mongoose from 'mongoose';
 
-export async function GET() {
-  const con = await dbConnect();
-  console.log("hit db connect", new Date().getSeconds());
-  return new NextResponse("connected and disconnected");
-
-  //   return NextResponse.json({ messsage: "Hello World" });
+export async function handler(req, res) {
+  try {
+    await mongoose.connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    res.status(200).json({ message: 'Connected to DB successfully!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error connecting to DB', error });
+  }
 }
