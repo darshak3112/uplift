@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Add useCallback
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -55,7 +55,8 @@ export default function AppliedTask() {
   const [sortOption, setSortOption] = useState("date");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchHistoryTasks = async () => {
+  // Use useCallback to memoize the fetchHistoryTasks function
+  const fetchHistoryTasks = useCallback(async () => {
     try {
       if (!historyData.isHistoryAvailable && testerId) {
         const response = await axios.post("/api/task/history", {
@@ -77,13 +78,13 @@ export default function AppliedTask() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dispatch, historyData.isHistoryAvailable, role, testerId]); // Add dependencies
 
   useEffect(() => {
     if (testerId) {
       fetchHistoryTasks();
     }
-  }, [testerId]);
+  }, [testerId, fetchHistoryTasks]); // Include fetchHistoryTasks in dependencies
 
   useEffect(() => {
     if (historyData.history.length > 0) {

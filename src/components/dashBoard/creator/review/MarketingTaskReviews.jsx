@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Import useCallback
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -16,12 +16,10 @@ import {
   FaSort,
   FaArrowLeft,
   FaClock,
-  FaUser,
   FaShoppingCart,
   FaLink,
   FaCheck,
   FaTimes,
-  FaExpandAlt,
 } from "react-icons/fa";
 import { CldImage } from "next-cloudinary";
 import toast from "react-hot-toast";
@@ -133,11 +131,8 @@ const MarketingTaskReviews = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  useEffect(() => {
-    fetchData();
-  }, [searchParams]);
-
-  const fetchData = async () => {
+  // Use useCallback to memoize fetchData
+  const fetchData = useCallback(async () => {
     const taskId = searchParams.get("taskId");
     const taskType = searchParams.get("type");
 
@@ -159,7 +154,11 @@ const MarketingTaskReviews = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]); // Include fetchData as a dependency
 
   const handleBack = () => {
     router.push("/dashboard?activeTab=review-creator");
@@ -195,12 +194,12 @@ const MarketingTaskReviews = () => {
               (response) =>
                 response.testerId === testerId
                   ? {
-                      ...response,
-                      status:
-                        status === "response-accepted"
-                          ? "approved"
-                          : "disapproved",
-                    }
+                    ...response,
+                    status:
+                      status === "response-accepted"
+                        ? "approved"
+                        : "disapproved",
+                  }
                   : response
             ),
           },
@@ -210,8 +209,7 @@ const MarketingTaskReviews = () => {
       }
     } catch (error) {
       toast.error(
-        `Failed to ${
-          status === "response-accepted" ? "approve" : "disapprove"
+        `Failed to ${status === "response-accepted" ? "approve" : "disapprove"
         } response: ${error.message}`
       );
     } finally {
@@ -271,60 +269,38 @@ const MarketingTaskReviews = () => {
   return (
     <div className="p-8 space-y-8 shadow-2xl bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
       <div className="flex items-center justify-between">
-        <Button color="light" onClick={handleBack}>
-          <FaArrowLeft className="mr-2" />
-          Back to Dashboard
+        <h1 className="text-2xl font-bold">Task Reviews</h1>
+        <Button onClick={handleBack}>
+          <FaArrowLeft className="mr-1" />
+          Back
         </Button>
-        <h1 className="text-3xl font-bold text-gray-800">{taskData.heading}</h1>
       </div>
 
-      <p className="text-lg text-gray-600 whitespace-pre-line">
-        {taskData.instruction}
-      </p>
+      <TextInput
+        placeholder="Search by Tester Name or Order ID..."
+        onChange={(e) => setSearchTerm(e.target.value)}
+        value={searchTerm}
+      />
 
-      <div className="flex items-center space-x-4">
-        <Badge color="info" icon={FaUsers}>
-          Total Orders: {taskData.answers.totalOrders}
-        </Badge>
-        <Badge color="success" icon={FaClock}>
-          Avg. Time to Review:{" "}
-          {taskData.answers.averageTimeBetweenOrderAndReview}
-        </Badge>
-      </div>
+      <Select
+        value={sortOrder}
+        onChange={(e) => setSortOrder(e.target.value)}
+        className="w-48"
+      >
+        <option value="newest">Sort by Newest</option>
+        <option value="oldest">Sort by Oldest</option>
+      </Select>
 
-      <div className="flex flex-col items-start justify-between space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
-        <div className="flex-1">
-          <TextInput
-            icon={FaSearch}
-            placeholder="Search reviews..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex space-x-4">
-          <Select icon={FaSort} onChange={(e) => setSortOrder(e.target.value)}>
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredAndSortedResponses.map((response, index) => (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filteredAndSortedResponses.map((response) => (
           <ReviewCard
-            key={index}
+            key={response.testerId}
             response={response}
             handleApprove={handleApprove}
             handleDisapprove={handleDisapprove}
           />
         ))}
       </div>
-
-      {filteredAndSortedResponses.length === 0 && (
-        <p className="mt-8 text-center text-gray-500">
-          No reviews found matching your criteria.
-        </p>
-      )}
     </div>
   );
 };

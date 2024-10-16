@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Import useCallback
 import { useAppDispatch, useAppSelector } from "@/_lib/store/hooks";
 import {
   addResponseTasks,
@@ -91,8 +91,8 @@ const SurveysResponse = () => {
     }
   };
 
-  // Function to reject the survey and call the API
-  const rejectSurvey = async () => {
+  // Wrap rejectSurvey in useCallback to memoize it
+  const rejectSurvey = useCallback(async () => {
     try {
       const surveyResponse = await axios.post(
         "/api/task/survey/taskResponseReject",
@@ -114,7 +114,7 @@ const SurveysResponse = () => {
     } catch (error) {
       console.error("Error rejecting survey:", error);
     }
-  };
+  }, [dispatch, router, taskId, testerId]); // Add necessary dependencies
 
   const submitFinalTask = async () => {
     setIsSubmitting(true);
@@ -125,7 +125,7 @@ const SurveysResponse = () => {
         surveyResponse
       );
 
-      if (surveyResponse.status === 201) {
+      if (response.status === 201) {
         dispatch(clearResponseTask());
         dispatch(clearAvailableTask());
         dispatch(clearHistoryUser());
@@ -172,7 +172,7 @@ const SurveysResponse = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [verificationStep]);
+  }, [verificationStep, rejectSurvey]); // Add rejectSurvey as a dependency
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -264,22 +264,24 @@ const SurveysResponse = () => {
           <div className="flex flex-col items-center justify-center p-4">
             <FaClipboardList className="w-16 h-16 mb-4 text-blue-500" />
             <p className="text-lg text-center text-gray-600">
-              Are you sure you want to submit the survey? You will be asked to
-              verify one of your previous answers.
+              Are you sure you want to submit your answers?
             </p>
           </div>
         </Modal.Body>
-        <Modal.Footer className="flex justify-center border-t border-gray-200">
+        <Modal.Footer>
           <Button
-            onClick={handleSubmitTask}
-            color="blue"
-            disabled={isSubmitting}
-            className="mr-2"
+            color="gray"
+            onClick={() => setShowConfirmModal(false)}
+            className="w-full py-2"
           >
-            {isSubmitting ? "Submitting..." : "Yes, Submit"}
-          </Button>
-          <Button onClick={() => setShowConfirmModal(false)} color="light">
             Cancel
+          </Button>
+          <Button
+            color="blue"
+            onClick={handleSubmitTask}
+            className="w-full py-2"
+          >
+            Submit
           </Button>
         </Modal.Footer>
       </Modal>

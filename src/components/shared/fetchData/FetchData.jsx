@@ -14,7 +14,8 @@ const FetchData = () => {
         role: getCookie("authorizeRole"),
       })
     );
-  }, []);
+  }, [dispatch]); // Add dispatch to the dependency array
+
   return <></>;
 };
 

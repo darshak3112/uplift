@@ -9,10 +9,12 @@ import { Blogs } from "@/components/landing/blogs/Blogs";
 import { FAQ } from "@/components/landing/faq/FAQ";
 import { GoToTopButton } from "@/components/shared/goToTop/GoToTop";
 import { Clients } from "@/components/landing/clients/Clients";
+import { Suspense } from "react";
 
 export default function Home() {
   return (
     <>
+      <Suspense fallback={<div>Loading...</div>}>
       <HeroBanner />
       <Featured />
       <Clients />
@@ -23,6 +25,7 @@ export default function Home() {
       <FAQ />
       <ContactUs />
       <GoToTopButton />
+      </Suspense>
     </>
   );
 }

@@ -22,64 +22,58 @@ export default function HistoryUser() {
   const [taskTypeFilter, setTaskTypeFilter] = useState("all");
   const [sortOption, setSortOption] = useState("date");
 
-  const fetchHistoryTasks = async () => {
-    try {
-      if (!historyData.isHistoryAvailable && testerId) {
-        const response = await axios.post("/api/task/history", {
-          id: testerId,
-          role,
-        });
-
-        if (response.status === 200) {
-          const { history } = response.data;
-          dispatch(addHistoryUser(history));
-        }
-      }
-    } catch (error) {
-      console.error(
-        "Error fetching history tasks:",
-        error.response ? error.response.data : error.message
-      );
-      toast.error("Failed to fetch history");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchHistoryTasks = async () => {
+      try {
+        if (!historyData.isHistoryAvailable && testerId) {
+          const response = await axios.post("/api/task/history", {
+            id: testerId,
+            role,
+          });
+
+          if (response.status === 200) {
+            const { history } = response.data;
+            dispatch(addHistoryUser(history));
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Error fetching history tasks:",
+          error.response ? error.response.data : error.message
+        );
+        toast.error("Failed to fetch history");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (testerId) {
       setTimeout(() => {
         fetchHistoryTasks();
       }, 1500);
     }
-  }, [testerId]);
+  }, [testerId, dispatch, role, historyData.isHistoryAvailable]);
 
   const filteredTasks = historyData.history
     .filter((task) => {
       if (activeTab === "analytics") {
-        // Only show closed tasks in analytics and exclude tasks of type "app" or "marketing"
         return (
           task.status?.toLowerCase() === "closed" &&
           !task.type?.toLowerCase().includes("app") &&
           !task.type?.toLowerCase().includes("marketing")
         );
       } else if (activeTab === "review-creator") {
-        // Show tasks of type "app" or "marketing"
         return (
           task.type?.toLowerCase().includes("app") ||
           task.type?.toLowerCase().includes("marketing")
         );
-      } 
-      // For other tabs, return all tasks
+      }
       return true;
     })
     .filter((task) => {
       if (taskTypeFilter !== "all") {
-        // Normalize task type to lowercase to handle different task type names
         const normalizedTaskType = task.type?.toLowerCase();
         const normalizedFilter = taskTypeFilter.toLowerCase();
-
-        // Filter based on the task type filter value
         return (
           (normalizedTaskType.includes("app") && normalizedFilter === "app") ||
           (normalizedTaskType.includes("youtube") &&
@@ -90,11 +84,9 @@ export default function HistoryUser() {
             normalizedFilter === "marketing")
         );
       }
-      // If no filter is selected, return all tasks
       return true;
     })
     .filter((task) => {
-      // Filter tasks based on the search term, matching heading or instruction
       const heading = task.heading?.toLowerCase() || "";
       const instruction = task.instruction?.toLowerCase() || "";
       return (
@@ -103,7 +95,6 @@ export default function HistoryUser() {
       );
     })
     .sort((a, b) => {
-      // Sort tasks based on the selected sort option
       if (sortOption === "date") {
         return new Date(b.date) - new Date(a.date);
       } else if (sortOption === "status") {
@@ -114,9 +105,10 @@ export default function HistoryUser() {
 
   useEffect(() => {
     if (isFiltering) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setIsFiltering(false);
       }, 500);
+      return () => clearTimeout(timer); // Cleanup timer on unmount
     }
   }, [isFiltering]);
 

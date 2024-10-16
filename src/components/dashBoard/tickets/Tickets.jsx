@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAppSelector } from "@/_lib/store/hooks";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -13,7 +13,8 @@ export default function Tickets() {
   const [tickets, setTickets] = useState([]);
   const [sortOption, setSortOption] = useState("date");
 
-  const fetchTickets = async () => {
+  // Wrap fetchTickets in useCallback
+  const fetchTickets = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await axios.post("/api/ticket/ticketList", {
@@ -31,13 +32,13 @@ export default function Tickets() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, role]); // Add userId and role as dependencies
 
   useEffect(() => {
     if (userId) {
       fetchTickets();
     }
-  }, [userId]);
+  }, [userId, fetchTickets]);
 
   const sortedTickets = [...tickets].sort((a, b) => {
     if (sortOption === "date") {
@@ -69,7 +70,7 @@ export default function Tickets() {
             <div className="w-32 h-6 mx-auto bg-gray-200 rounded animate-pulse"></div>
           </div>
         </div>
-      ))}
+      ))} 
     </div>
   );
 
