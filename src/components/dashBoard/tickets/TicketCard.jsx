@@ -36,7 +36,7 @@ export function TicketCard({ ticket }) {
       };
 
       try {
-        const response = await axios.post("/api/ticket/addMessage", {
+        const response = await axios.post("/api/ticket/addmessage", {
           ticketId: ticket._id,
           message: newMessageObj,
         });
@@ -89,13 +89,13 @@ export function TicketCard({ ticket }) {
             </Badge>
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-800 line-clamp-2">
-            Ticket ID: {ticket.ticketId}
+             {ticket.heading}
           </h3>
           <p className="mb-4 text-sm text-gray-600 line-clamp-3">
             Latest message: {latestMessage.content}
           </p>
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Task ID: {ticket.taskId.slice(0, 8)}...</span>
+            <span>: {ticket.taskId.slice(0, 8)}...</span>
             <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
           </div>
         </div>

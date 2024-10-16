@@ -36,11 +36,27 @@ export async function POST(req) {
     ]);
     console.log(taskExists)
     if (!taskExists) {
-      throw new Error("Task not found");
+      await session.abortTransaction();
+      await session.endSession();
+    }
+
+    const ticketExists = await Ticket.findOne({ taskId, testerId }).session(session);
+    if (ticketExists) {
+      await session.abortTransaction();
+      await session.endSession();
+      return NextResponse.json(
+        { message: "Ticket already exists" },
+        { status: 400 }
+      );
     }
 
     if (!testerExists) {
-      throw new Error("Tester not found");
+      await session.abortTransaction();
+      await session.endSession();
+      return NextResponse.json(
+        {messages : "tester is not exists"},
+        {status : 400}
+      )
     }
 
     // Create a new Ticket instance

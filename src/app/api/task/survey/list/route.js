@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
-import Survey from "@/models/task/surveytaskModel";
-import Tester from "@/model/testerModel";
-import Task from "@/models/task/taskModel";
+import { Tester , Task , Survey } from "@/models";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
