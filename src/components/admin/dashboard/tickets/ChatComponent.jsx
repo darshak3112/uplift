@@ -59,7 +59,7 @@ const ChatComponent = ({
                 message.sender
               )}`}
             >
-              {message?.sender}
+              {message.sender}
             </div>
             <div className="p-2 bg-white border border-t-0 border-gray-200 rounded-b-lg">
               <p className="text-sm">{message.content}</p>

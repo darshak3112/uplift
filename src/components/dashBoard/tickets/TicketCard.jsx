@@ -10,7 +10,6 @@ export function TicketCard({ ticket }) {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState(ticket.messages);
   const [isSending, setIsSending] = useState(false);
-console.log(ticket);
   const { role } = useAppSelector((state) => state.userInfo);
 
   const handleClick = () => {

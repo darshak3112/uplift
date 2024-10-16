@@ -120,7 +120,6 @@ const SurveysResponse = () => {
     setIsSubmitting(true);
     try {
       const surveyResponse = { taskId, testerId, response: responseTaskData };
-      console.log(surveyResponse);
       const response = await axios.post(
         "/api/task/survey/taskResponse",
         surveyResponse

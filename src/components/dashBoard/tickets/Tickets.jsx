@@ -21,7 +21,6 @@ export default function Tickets() {
         role,
       });
 
-      console.log(response);
       if (response.status === 200) {
         setTickets(response?.data?.tickets);
       }
