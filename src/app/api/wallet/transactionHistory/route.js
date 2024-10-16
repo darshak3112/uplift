@@ -28,7 +28,6 @@ export async function POST(req) {
 
     // Commit transaction if everything is okay
     await session.commitTransaction();
-
     return NextResponse.json({ transactions }, { status: 200 });
   } catch (error) {
     console.error("Error:", error.message);

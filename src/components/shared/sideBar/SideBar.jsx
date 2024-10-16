@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "flowbite-react";
 import { HiChartPie, HiMenu, HiX } from "react-icons/hi";
 import { CgProfile } from "react-icons/cg";
-import { FaTasks, FaHistory } from "react-icons/fa";
+import { FaTasks, FaUsers } from "react-icons/fa";
 import { IoWallet, IoTicket } from "react-icons/io5";
 import { useAppSelector } from "@/_lib/store/hooks";
 import Link from "next/link";
+import { GiReceiveMoney } from "react-icons/gi";
+import { MdAssignment } from "react-icons/md";
 
 export function SideBarComponent() {
   const [isSidebarVisible, setSidebarVisible] = useState(false);
@@ -15,8 +17,8 @@ export function SideBarComponent() {
   const [role, setRole] = useState(tempRole);
 
   useEffect(() => {
-    setRole(tempRole), [];
-  });
+    setRole(tempRole);
+  }, [tempRole]);
 
   const toggleSidebar = () => {
     setSidebarVisible(!isSidebarVisible);
@@ -26,70 +28,118 @@ export function SideBarComponent() {
     setSidebarVisible(false);
   };
 
-  const taskItems =
-    role === "tester"
-      ? [
-          {
-            href: "/dashboard?activeTab=available-task",
-            label: "Available Task",
-          },
-          { href: "/dashboard?activeTab=applied-task", label: "Applied Task" },
-          { href: "/dashboard?activeTab=ongoing-task", label: "On-going Task" },
-          { href: "/dashboard?activeTab=result-tester", label: "Result" },
-        ]
-      : role === "creator"
-      ? [
-          { href: "/dashboard?activeTab=add-task", label: "Add Task" },
-          { href: "/dashboard?activeTab=ongoing-task", label: "On-going Task" },
-        { href: "/dashboard?activeTab=review-creator", label: "Review" },
-        ]
-      : [];
-
-  const sidebarGroups = [
-    {
-      items: [
-        ...(role === "creator"
-          ? [
-              {
-                href: "/dashboard?activeTab=analytics",
-                label: "Analytics",
-                icon: HiChartPie,
-              },
-            ]
-          : []),
+  const getSidebarItems = () => {
+    if (role === "admin") {
+      return [
         {
-          collapse: true,
-          icon: FaTasks,
+          href: "/admin/dashboard?activeTab=creators-admin",
+          label: "Creators",
+          icon: CgProfile,
+        },
+        {
+          href: "/admin/dashboard?activeTab=testers-admin",
+          label: "Testers",
+          icon: FaUsers,
+        },
+        {
+          href: "/admin/dashboard?activeTab=tasks-admin",
           label: "Tasks",
-          items: taskItems,
+          icon: MdAssignment,
         },
         {
-          href: "/dashboard?activeTab=history",
-          label: "History",
-          icon: FaHistory,
-        },
-      ],
-    },
-    {
-      items: [
-        {
-          href: "/dashboard?activeTab=wallet",
-          label: "Wallet",
-          icon: IoWallet,
+          href: "/admin/dashboard?activeTab=transactions-admin",
+          label: "Transactions",
+          icon: GiReceiveMoney,
         },
         {
-          href: "/dashboard?activeTab=ticket",
-          label: "Ticket Generation",
+          href: "/admin/dashboard?activeTab=tickets-admin",
+          label: "Tickets",
           icon: IoTicket,
         },
         {
-          href: "/dashboard?activeTab=profile",
-          label: "Manage Profile",
-          icon: CgProfile,
+          href: "/admin/dashboard?activeTab=wallet-admin",
+          label: "Wallet",
+          icon: IoWallet,
         },
-      ],
-    },
-  ];
+      ];
+    }
+
+    const taskItems =
+      role === "tester"
+        ? [
+            {
+              href: "/dashboard?activeTab=available-task",
+              label: "Available Task",
+            },
+            {
+              href: "/dashboard?activeTab=applied-task",
+              label: "Applied Task",
+            },
+            {
+              href: "/dashboard?activeTab=ongoing-task",
+              label: "On-going Task",
+            },
+            { href: "/dashboard?activeTab=result-tester", label: "Result" },
+          ]
+        : role === "creator"
+        ? [
+            { href: "/dashboard?activeTab=add-task", label: "Add Task" },
+            {
+              href: "/dashboard?activeTab=ongoing-task",
+              label: "On-going Task",
+            },
+            { href: "/dashboard?activeTab=review-creator", label: "Review" },
+          ]
+        : [];
+
+    return [
+      {
+        items: [
+          ...(role === "creator"
+            ? [
+                {
+                  href: "/dashboard?activeTab=analytics",
+                  label: "Analytics",
+                  icon: HiChartPie,
+                },
+              ]
+            : []),
+          {
+            collapse: true,
+            icon: FaTasks,
+            label: "Tasks",
+            items: taskItems,
+          },
+          {
+            href: "/dashboard?activeTab=history",
+            label: "History",
+            icon: FaTasks,
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            href: "/dashboard?activeTab=wallet",
+            label: "Wallet",
+            icon: IoWallet,
+          },
+          {
+            href: "/dashboard?activeTab=ticket",
+            label: "Tickets",
+            icon: IoTicket,
+          },
+          {
+            href: "/dashboard?activeTab=profile",
+            label: "Manage Profile",
+            icon: CgProfile,
+          },
+        ],
+      },
+    ];
+  };
+
+  const sidebarItems = getSidebarItems();
 
   return (
     <>
@@ -117,40 +167,56 @@ export function SideBarComponent() {
             </button>
           </div>
           <Sidebar.Items>
-            {sidebarGroups.map((group, groupIndex) => (
-              <Sidebar.ItemGroup key={groupIndex}>
-                {group.items.map((item, itemIndex) =>
-                  item.collapse ? (
-                    <Sidebar.Collapse
-                      key={itemIndex}
-                      icon={item.icon}
-                      label={item.label}
-                    >
-                      {item.items.map((subItem, subIndex) => (
-                        <Sidebar.Item
-                          as={Link}
-                          href={subItem.href}
-                          key={subIndex}
-                          onClick={closeSidebar}
-                        >
-                          {subItem.label}
-                        </Sidebar.Item>
-                      ))}
-                    </Sidebar.Collapse>
-                  ) : (
-                    <Sidebar.Item
-                      as={Link}
-                      href={item.href}
-                      key={itemIndex}
-                      icon={item.icon}
-                      onClick={closeSidebar}
-                    >
-                      {item.label}
-                    </Sidebar.Item>
-                  )
-                )}
+            {role === "admin" ? (
+              <Sidebar.ItemGroup>
+                {sidebarItems.map((item, index) => (
+                  <Sidebar.Item
+                    key={index}
+                    as={Link}
+                    href={item.href}
+                    icon={item.icon}
+                    onClick={closeSidebar}
+                  >
+                    {item.label}
+                  </Sidebar.Item>
+                ))}
               </Sidebar.ItemGroup>
-            ))}
+            ) : (
+              sidebarItems.map((group, groupIndex) => (
+                <Sidebar.ItemGroup key={groupIndex}>
+                  {group.items.map((item, itemIndex) =>
+                    item.collapse ? (
+                      <Sidebar.Collapse
+                        key={itemIndex}
+                        icon={item.icon}
+                        label={item.label}
+                      >
+                        {item.items.map((subItem, subIndex) => (
+                          <Sidebar.Item
+                            as={Link}
+                            href={subItem.href}
+                            key={subIndex}
+                            onClick={closeSidebar}
+                          >
+                            {subItem.label}
+                          </Sidebar.Item>
+                        ))}
+                      </Sidebar.Collapse>
+                    ) : (
+                      <Sidebar.Item
+                        as={Link}
+                        href={item.href}
+                        key={itemIndex}
+                        icon={item.icon}
+                        onClick={closeSidebar}
+                      >
+                        {item.label}
+                      </Sidebar.Item>
+                    )
+                  )}
+                </Sidebar.ItemGroup>
+              ))
+            )}
           </Sidebar.Items>
         </Sidebar>
       </div>

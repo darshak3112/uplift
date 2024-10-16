@@ -5,7 +5,7 @@ import { debitWallet } from "@/_lib/walletService";
 
 export async function POST(req) {
   let session;
-  
+
   try {
     const reqBody = await req.json();
     if (!reqBody) {
@@ -98,17 +98,23 @@ export async function POST(req) {
       { session, new: true }
     );
 
-    await session.commitTransaction();
+    const walletDebit = await debitWallet(creator, ((marketingTask.refund_percentage / 100) * (task.tester_no) * marketingTask.product_price) + ((5 / 100) * marketingTask.product_price * task.tester_no), task._id, session);
+    if (!walletDebit.success) {
+      return NextResponse.json(
+        {
+          message: "Survey task created successfully but dont have enough money in wallet",
+          task: task,
+        },
+        { status: 402 }
+      );
+    }
 
-    debitWallet(creator, ((marketingTask.refund_percentage/100) *(task.tester_no)*marketingTask.product_price) + ((5/100)*marketingTask.product_price*task.tester_no),task._id,session);
+    await session.commitTransaction();
     return NextResponse.json(
       { message: "Marketing task added successfully", task },
       { status: 200 }
     );
   } catch (error) {
-    if (session) {
-      await session.abortTransaction();
-    }
     console.error("Error in POST request:", error);
     return NextResponse.json(
       { message: "An error occurred", error: error.message },

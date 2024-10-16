@@ -24,7 +24,7 @@ const ticketSchema = new mongoose.Schema(
         },
         sender: {
           type: String,
-          enum: ["tester", "admin"],
+          enum: ["tester", "admin","creator"],
           required: true,
         },
         sentAt: {
