@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
-import {Task, Ticket, Tester, AppRespons, AppTask, SurveyTask, SurveyResponse, MarketingTask, MarketingResponse, YoutubeResponse, YoutubeTask} from "@/models"
+import {Task, Ticket, Tester, AppResponse, AppTask, SurveyTask, SurveyResponse, MarketingTask, MarketingResponse, YoutubeResponse, YoutubeTask} from "@/models"
 
 export async function POST(req) {
     const session = await mongoose.startSession();
@@ -8,7 +8,7 @@ export async function POST(req) {
     
     try {
         const { ticketId } = await req.json();
-        const ticket = await Ticket.findById(ticketId).session(session);
+        const ticket = await Ticket.findOne({ ticketId }).session(session);
         const task = await Task.findById(ticket.taskId).session(session);
         const taskType = task.type;
         console.log("Task Type: ", taskType);
@@ -28,12 +28,13 @@ export async function POST(req) {
                 specificTask = await YoutubeTask.findById(task.specificTask).session(session);
                 break;
         }
+        console.log("task",task.id)
         console.log("Specific Task: ", specificTask);
         let response = ""
 
         switch(taskType){
             case "AppTask":
-                response = await AppRespons.find({
+                response = await AppResponse.find({
                     taskId: task.id,
                     testerId: ticket.testerId,
                 }).session(session);

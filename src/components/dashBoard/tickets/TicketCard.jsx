@@ -10,11 +10,13 @@ export function TicketCard({ ticket }) {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState(ticket.messages);
   const [isSending, setIsSending] = useState(false);
-
+console.log(ticket);
   const { role } = useAppSelector((state) => state.userInfo);
 
   const handleClick = () => {
-    setIsModalOpen(true);
+    if (ticket.isOpen) {
+      setIsModalOpen(true);
+    }
   };
 
   const statusColor = (isOpen) => {
@@ -36,7 +38,7 @@ export function TicketCard({ ticket }) {
       };
 
       try {
-        const response = await axios.post("/api/ticket/addmessage", {
+        const response = await axios.post("/api/ticket/addMessage", {
           ticketId: ticket._id,
           message: newMessageObj,
         });
@@ -89,7 +91,7 @@ export function TicketCard({ ticket }) {
             </Badge>
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-800 line-clamp-2">
-             {ticket.heading}
+            {ticket.heading}
           </h3>
           <p className="mb-4 text-sm text-gray-600 line-clamp-3">
             Latest message: {latestMessage.content}
@@ -99,7 +101,11 @@ export function TicketCard({ ticket }) {
             <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
-        <div className="p-3 text-center transition-colors duration-300 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+        <div
+          className={` ${
+            ticket.isOpen ? "" : "hidden"
+          } p-3 text-center transition-colors duration-300 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100`}
+        >
           <span className="flex items-center justify-center text-sm font-medium text-indigo-600">
             <FaEye className="mr-2" /> View Details
           </span>

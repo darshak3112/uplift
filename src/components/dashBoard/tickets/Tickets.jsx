@@ -16,7 +16,7 @@ export default function Tickets() {
   const fetchTickets = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/ticket/ticketlist", {
+      const response = await axios.post("/api/ticket/ticketList", {
         userId,
         role,
       });

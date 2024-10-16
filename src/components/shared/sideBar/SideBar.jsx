@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Sidebar } from "flowbite-react";
 import { HiChartPie, HiMenu, HiX } from "react-icons/hi";
 import { CgProfile } from "react-icons/cg";
-import { FaTasks, FaUsers } from "react-icons/fa";
+import { FaHistory, FaTasks, FaUsers } from "react-icons/fa";
 import { IoWallet, IoTicket } from "react-icons/io5";
 import { useAppSelector } from "@/_lib/store/hooks";
 import Link from "next/link";
@@ -113,7 +113,7 @@ export function SideBarComponent() {
           {
             href: "/dashboard?activeTab=history",
             label: "History",
-            icon: FaTasks,
+            icon: FaHistory,
           },
         ],
       },

@@ -277,7 +277,7 @@ const AppTaskReviews = () => {
                 </div>
               ))}
             </div>
-            {responses.length > 19 && (
+            {responses.length > 1 && (
               <div className="flex justify-end pt-4 space-x-2 border-t border-gray-200">
                 <Button
                   color="success"

@@ -8,7 +8,6 @@ export async function POST(req) {
 
     try {
         const { ticketId } = await req.json()
-
         if (!ticketId) {
             await session.abortTransaction();
             session.endSession();
@@ -18,8 +17,7 @@ export async function POST(req) {
             );
         }
 
-        const ticket = await Ticket.findById(ticketId);
-
+        const ticket = await Ticket.findOne({ ticketId });
         if (!ticket) {
             await session.abortTransaction();
             session.endSession();
@@ -39,7 +37,7 @@ export async function POST(req) {
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
-        console.error("Error in POST request:", error);
+        console.error("Error in POST request:", error.message);
         return NextResponse.json(
             { message: "An error occurred", error: error.message },
             { status: 500 }

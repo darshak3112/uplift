@@ -27,10 +27,11 @@ export async function POST(req) {
     } else if (role === "creator") {
       // Fetch creator and their task history
       const creator = await Creator.findById(userId).session(session);
-      const taskIds = creator.taskHistory.map((task) => task._id);
+      const taskIds = creator.taskHistory.map((task) => task.task);
 
       // Find all tickets for the creator's tasks
       const fetchedTickets = await Ticket.find({ taskId: { $in: taskIds } }).session(session);
+
 
       // Create a new array of tickets with their respective heading
       tickets = await Promise.all(fetchedTickets.map(async (ticket) => {
