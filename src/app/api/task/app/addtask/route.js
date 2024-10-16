@@ -52,8 +52,8 @@ export async function POST(req) {
       current_date >= post_date && current_date <= end_date
         ? "Open"
         : current_date > end_date
-          ? "Closed"
-          : "Pending";
+        ? "Closed"
+        : "Pending";
 
     // Create the Task instance first
     const task = new Task({
@@ -70,7 +70,7 @@ export async function POST(req) {
       task_flag,
     });
 
-
+    
 
     // Create the AppTask instance and set taskId
     const appTask = new AppTask({
@@ -90,7 +90,7 @@ export async function POST(req) {
 
 
 
-
+    
 
     // Update the creator's task history
     await Creator.findByIdAndUpdate(
@@ -98,8 +98,7 @@ export async function POST(req) {
       { $push: { taskHistory: { task: savedTask._id } } },
       { session, new: true }
     );
-
-    const walletDebit = await debitWallet(creator, tester_no * 500, task._id, session);
+    const walletDebit = await debitWallet(creator, tester_no*500 , task._id , session);
     if (!walletDebit.success) {
       return NextResponse.json(
         {
@@ -112,6 +111,8 @@ export async function POST(req) {
     // Commit the transaction
     await session.commitTransaction();
     session.endSession();
+
+    
 
     return NextResponse.json(
       {

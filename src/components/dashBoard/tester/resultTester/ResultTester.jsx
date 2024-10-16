@@ -14,6 +14,7 @@ import {
   Select,
 } from "flowbite-react";
 import { FaTicketAlt, FaFilter, FaSort } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 const TaskCard = ({ task, onRaiseTicket }) => {
   const isResponseRejected = task.status.toLowerCase() === "response-rejected";
@@ -64,7 +65,7 @@ export default function ResultTester() {
   const testerId = useAppSelector((state) => state.userInfo.id);
   const role = useAppSelector((state) => state.userInfo.role);
   const historyData = useAppSelector((state) => state.historyUser);
-
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(true);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -164,7 +165,14 @@ export default function ResultTester() {
         setIsModalOpen(false);
         setTicketDescription("");
         await fetchHistoryTasks();
-      } else {
+      }
+      else if(response.status === 400 && response.message === "Ticket already exists")
+      {
+        router.push("/dashboard?activeTab=ticket")
+        throw new Error("Ticket already Exists")
+      }
+      
+      else {
         throw new Error("Failed to raise ticket");
       }
     } catch (error) {
