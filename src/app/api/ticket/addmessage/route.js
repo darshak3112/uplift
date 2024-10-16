@@ -9,6 +9,7 @@ export async function POST(req) {
 
   try {
     const { ticketId, message } = await req.json();
+    console.log(ticketId, message);
     const ticket = await Ticket.findById(ticketId).session(session);
     console.log(message)
     if(!ticket) {
@@ -28,7 +29,7 @@ export async function POST(req) {
     // Rollback the transaction on error
     await session.abortTransaction();
     session.endSession();
-    console.error("Error in POST request:", error);
+    console.error("Error in POST request:", error.message);
     return NextResponse.json(
       { message: "An error occurred", error: error.message },
       { status: 500 }
